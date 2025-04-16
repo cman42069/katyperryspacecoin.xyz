@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KatyPerry Coin - Katy Perry Space Crypto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Define CSS variables for colors */
+        :root {
+            --primary: #ff69b4; /* Hot pink */
+            --secondary: #9932cc; /* Dark orchid */
+            --dark: #120338; /* Dark blue/purple */
+            --light: #f8f9fa; /* Light grey */
+            --accent: #00bfff; /* Deep sky blue */
+            --text-light: rgba(248, 249, 250, 0.9); /* Slightly transparent light text */
+            --text-muted: rgba(248, 249, 250, 0.6); /* More transparent light text */
+            --popup-text: #333; /* Darker text for popups */
+            --error-color: #dc3545; /* Red for errors */
+            --success-color: #28a745; /* Green for success */
+        }
+
+        /* Enable smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Basic body styling */
+        body {
+            font-family: 'Inter', sans-serif; /* Use Inter font */
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark);
+            color: var(--text-light); /* Use slightly transparent light text */
+            /* Background gradient overlay */
+            background-image: linear-gradient(rgba(18, 3, 56, 0.95), rgba(18, 3, 56, 0.95));
+            background-size: cover; /* Ensure background covers the page */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            line-height: 1.6; /* Improved line spacing */
+        }
+
+        /* --- Header & Navigation --- */
+        header {
+            background-color: rgba(18, 3, 56, 0.8); /* Slightly more opaque background */
+            padding: 0.8rem 1rem; /* Adjusted padding */
+            position: fixed; /* Stick header to the top */
+            width: 100%;
+            top: 0; /* Ensure it sticks to the top */
+            left: 0; /* Ensure it spans the full width */
+            z-index: 1000; /* Ensure header is above most content */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Add shadow for depth */
+            backdrop-filter: blur(5px); /* Add blur effect for modern look */
+            -webkit-backdrop-filter: blur(5px); /* Safari compatibility */
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between; /* Space out logo and nav items */
+            align-items: center; /* Vertically align items */
+            max-width: 1200px; /* Limit width for large screens */
+            margin: 0 auto; /* Center navigation */
+            padding: 0 1rem; /* Add horizontal padding */
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem; /* Reduced gap between icon and text */
+            text-decoration: none; /* Remove underline from logo link */
+        }
+
+        .logo-text {
+            font-size: 1.4rem; /* Slightly smaller logo text */
+            font-weight: 700; /* Bolder text */
+            /* Gradient text effect */
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo-icon {
+            width: 35px; /* Slightly smaller icon */
+            height: 35px;
+            background-color: var(--primary);
+            border-radius: 50%; /* Make it circular */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden; /* Needed for pseudo-elements if any */
+        }
+
+        .logo-icon::before {
+            content: '✨'; /* Sparkle emoji */
+            font-size: 18px; /* Adjusted emoji size */
+        }
+
+        /* Desktop Navigation Links */
+        nav .desktop-nav {
+            display: flex; /* Arrange links horizontally */
+            list-style: none; /* Remove bullet points */
+            margin: 0;
+            padding: 0;
+            gap: 2rem; /* Space between links */
+        }
+
+        nav .desktop-nav a {
+            color: var(--light);
+            text-decoration: none; /* Ensure no default underline */
+            font-weight: 500;
+            transition: color 0.3s; /* Smooth color transition on hover */
+            padding: 0.5rem 0; /* Add padding for easier clicking */
+            position: relative; /* For underline effect */
+        }
+        /* Underline effect on hover */
+        nav .desktop-nav a::after {
+            content: '';
+            position: absolute;
+            width: 0; /* Start with no width */
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--primary);
+            transition: all 0.3s ease-out; /* Animate width and position */
+            transform: translateX(-50%); /* Center the line */
+        }
+
+        nav .desktop-nav a:hover {
+            color: var(--primary); /* Change text color on hover */
+        }
+        nav .desktop-nav a:hover::after {
+            width: 100%; /* Expand underline on hover */
+        }
+
+
+        /* Hamburger Menu Button (Visible on Mobile) */
+        .menu-toggle {
+            display: none; /* Hidden by default on larger screens */
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1100; /* Above mobile nav overlay */
+        }
+
+        .menu-toggle .hamburger {
+            width: 25px;
+            height: 3px;
+            background-color: var(--light);
+            display: block;
+            position: relative;
+            transition: background-color 0.3s; /* Transition for 'X' animation */
+        }
+
+        /* Hamburger lines */
+        .menu-toggle .hamburger::before,
+        .menu-toggle .hamburger::after {
+            content: '';
+            width: 100%;
+            height: 3px;
+            background-color: var(--light);
+            position: absolute;
+            left: 0;
+            transition: transform 0.3s ease-out, top 0.3s ease-out; /* Animate transform and position */
+        }
+
+        .menu-toggle .hamburger::before {
+            top: -8px; /* Position top line */
+        }
+
+        .menu-toggle .hamburger::after {
+            top: 8px; /* Position bottom line */
+        }
+
+        /* Hamburger animation when active (forms an 'X') */
+        .menu-toggle.active .hamburger {
+            background-color: transparent; /* Middle bar disappears */
+        }
+        .menu-toggle.active .hamburger::before {
+            top: 0;
+            transform: rotate(45deg); /* Rotate top line */
+        }
+        .menu-toggle.active .hamburger::after {
+            top: 0;
+            transform: rotate(-45deg); /* Rotate bottom line */
+        }
+
+
+        /* Mobile Navigation Menu */
+        .mobile-nav {
+            display: none; /* Hidden by default */
+            position: fixed; /* Full screen overlay */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(18, 3, 56, 0.98); /* Almost opaque dark */
+            backdrop-filter: blur(10px); /* Stronger blur for overlay */
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1050; /* Below header toggle, above content */
+            flex-direction: column; /* Stack links vertically */
+            align-items: center; /* Center items horizontally */
+            justify-content: center; /* Center items vertically */
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            gap: 2rem; /* Space between mobile links */
+            opacity: 0; /* Start hidden for transition */
+            transform: translateY(-100%); /* Start off-screen */
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out; /* Smooth slide-in */
+        }
+
+        .mobile-nav.active {
+            display: flex; /* Show when active */
+            opacity: 1;
+            transform: translateY(0); /* Slide into view */
+        }
+
+        .mobile-nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 1.5rem; /* Larger font size for mobile */
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .mobile-nav a:hover {
+            color: var(--primary); /* Highlight on hover */
+        }
+        .mobile-nav .btn { /* Style button within mobile nav */
+             margin-top: 1rem;
+        }
+
+        /* --- General Styles --- */
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary)); /* Gradient background */
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem; /* Button padding */
+            border-radius: 25px; /* Rounded corners */
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s, opacity 0.3s; /* Animate transform and shadow */
+            text-transform: uppercase; /* Uppercase text */
+            letter-spacing: 1px; /* Add letter spacing */
+            display: inline-block; /* Ensure proper layout */
+            text-decoration: none; /* Remove underline from button links */
+            white-space: nowrap; /* Prevent text wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis if text too long */
+            max-width: 200px; /* Set a max-width for connected state */
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.03); /* Lift and slightly scale on hover */
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.5); /* Enhanced pink glow */
+        }
+        .btn:active { /* Style for when button is clicked */
+            transform: translateY(-1px) scale(0.98); /* Slight press effect */
+            box-shadow: 0 3px 10px rgba(255, 105, 180, 0.3); /* Reduced glow */
+        }
+        .btn:disabled { /* Style for disabled button */
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        /* Style for connected wallet button */
+        .btn.connected {
+             background: var(--success-color); /* Green background */
+             max-width: 220px; /* Allow slightly more width for address */
+        }
+        .btn.connected:hover {
+             transform: none; /* No hover effect when connected */
+             box-shadow: none;
+             background: var(--success-color); /* Keep green */
+        }
+
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem; /* Large section title */
+            font-weight: 700; /* Bolder title */
+            margin-bottom: 3rem; /* Space below title */
+            position: relative; /* For underline pseudo-element */
+            color: var(--primary); /* Use primary color */
+        }
+
+        /* Underline for section titles */
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 80px; /* Slightly shorter underline */
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--accent)); /* Gradient underline */
+            bottom: -10px; /* Position below text */
+            left: 50%;
+            transform: translateX(-50%); /* Center the underline */
+            border-radius: 2px; /* Rounded underline */
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            min-height: 100vh; /* Ensure hero fills viewport height */
+            display: flex;
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Horizontally center content */
+            position: relative; /* Needed for z-index stacking */
+            padding: 8rem 2rem 2rem; /* Increased top padding for fixed header, bottom padding */
+            text-align: center;
+            box-sizing: border-box; /* Include padding in height calculation */
+        }
+
+        .hero-content {
+            max-width: 1200px; /* Limit content width */
+            margin: 0 auto; /* Center content */
+            z-index: 2; /* Ensure content is above background animation */
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem); /* Responsive font size */
+            font-weight: 900; /* Extra bold heading */
+            margin-bottom: 1rem; /* Space below heading */
+            /* Gradient text effect */
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1.2; /* Adjust line height */
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2.5vw, 1.2rem); /* Responsive font size */
+            max-width: 600px; /* Limit paragraph width */
+            margin: 0 auto 2.5rem; /* Center paragraph and add bottom margin */
+            color: var(--text-muted); /* Muted color for subtitle */
+        }
+
+        /* --- Space Animation --- */
+        .space-animation {
+            position: fixed; /* Fixed position to stay behind content */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Hide stars going outside */
+            opacity: 0.4; /* Slightly less opaque */
+            z-index: -1; /* Ensure it's behind everything */
+        }
+
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate ease-in-out; /* Twinkle animation */
+        }
+        /* Twinkle animation keyframes */
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            100% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+
+        /* --- About Section --- */
+        .about {
+            padding: 5rem 2rem; /* Section padding */
+            max-width: 1200px; /* Limit width */
+            margin: 0 auto; /* Center section */
+        }
+        .about > p { /* Style the main introductory paragraph */
+            text-align: center;
+            max-width: 800px; /* Limit paragraph width */
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 3rem; /* Space before grid */
+            color: var(--text-muted);
+        }
+
+        .mission-grid {
+            display: grid;
+            /* Responsive grid: columns adjust based on available width */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem; /* Gap between grid items */
+        }
+
+        .mission-card {
+            background: rgba(255, 255, 255, 0.05); /* Subtle background */
+            border-radius: 15px; /* Rounded corners */
+            padding: 2.5rem 2rem; /* More padding inside card */
+            text-align: center;
+            transition: transform 0.3s ease-out, background 0.3s ease-out, box-shadow 0.3s ease-out; /* Smooth transitions */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+            opacity: 0; /* Start hidden for animation */
+            transform: translateY(30px); /* Start lower for animation */
+        }
+        .mission-card.visible { /* Class added by JS for fade-in */
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .mission-card:hover {
+            transform: translateY(-10px) scale(1.02); /* Lift and slightly enlarge on hover */
+            background: rgba(255, 255, 255, 0.1); /* Slightly lighten background */
+            box-shadow: 0 10px 25px rgba(0, 191, 255, 0.2); /* Accent color glow */
+        }
+
+        .mission-card i { /* Style for emoji icons */
+            font-size: 2.8rem; /* Larger icon */
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-style: normal; /* Prevent italics */
+            display: block; /* Ensure proper spacing */
+        }
+
+        .mission-card h3 {
+            font-size: 1.4rem; /* Adjusted heading size */
+            margin-bottom: 1rem;
+            color: var(--light); /* Lighter heading */
+        }
+        .mission-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* --- Team Section --- */
+        .team {
+            padding: 5rem 2rem;
+            background-color: rgba(0, 0, 0, 0.3); /* Darker background overlay */
+        }
+
+        .team-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+            gap: 3rem; /* Increased gap */
+            margin-top: 3rem; /* Space below section title */
+        }
+
+        .team-member {
+            text-align: center;
+            opacity: 0; /* Start hidden for animation */
+            transform: translateY(30px); /* Start lower for animation */
+            /* Stagger animation using CSS variable set in HTML */
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            transition-delay: calc(var(--animation-order) * 100ms);
+        }
+        .team-member.visible { /* Class added by JS */
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .team-photo {
+            width: 180px; /* Adjusted photo size */
+            height: 180px;
+            border-radius: 50%; /* Circular photos */
+            overflow: hidden; /* Clip image to circle */
+            margin: 0 auto 1.5rem; /* Center photo and add bottom margin */
+            position: relative;
+            border: 4px solid var(--primary); /* Thicker pink border */
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.3); /* Add pink glow */
+        }
+
+        .team-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensure image covers the area */
+            display: block; /* Remove potential bottom space */
+        }
+
+        .team-member h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem; /* Reduced space between name and role */
+            color: var(--light);
+        }
+
+        .team-member p:first-of-type { /* Role */
+            color: var(--accent); /* Accent color for role */
+            margin-bottom: 1rem;
+            font-weight: 500; /* Normal weight */
+            font-size: 1rem;
+        }
+        .team-member p:last-of-type { /* Description */
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-width: 250px; /* Limit description width */
+            margin: 0 auto; /* Center description */
+        }
+
+        /* --- Roadmap Section --- */
+        .roadmap {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow: hidden; /* Prevent timeline elements breaking layout before animation */
+        }
+
+        .timeline {
+            position: relative; /* Container for absolute positioning */
+            max-width: 800px; /* Limit timeline width */
+            margin: 0 auto; /* Center timeline */
+            padding-top: 2rem; /* Space above first item */
+        }
+
+        /* The vertical timeline bar */
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--accent)); /* Gradient line */
+            left: 50%; /* Center the line */
+            transform: translateX(-50%);
+            z-index: 1; /* Behind timeline items */
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 4rem; /* Space between items */
+            z-index: 2; /* Above the timeline bar */
+            opacity: 0; /* Start hidden for animation */
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out; /* Animate fade and slide */
+        }
+        .timeline-item.visible { /* Class added by JS */
+            opacity: 1;
+        }
+        /* Animate odd items from right, even from left */
+        .timeline-item:nth-child(odd) { transform: translateX(50px); }
+        .timeline-item:nth-child(even) { transform: translateX(-50px); }
+        .timeline-item.visible { transform: translateX(0); } /* Slide in */
+
+
+        .timeline-content {
+            position: relative;
+            width: calc(50% - 40px); /* Width of content box, leaving space for dot */
+            padding: 1.5rem; /* Padding inside content box */
+            background: rgba(255, 255, 255, 0.07); /* Slightly transparent background */
+            border-radius: 10px; /* Rounded corners */
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border */
+            transition: transform 0.4s ease-out, background 0.3s ease-out; /* Smooth transitions */
+        }
+
+        /* Position odd items to the right */
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: calc(50% + 40px); /* Push to the right */
+        }
+        /* Position even items to the left */
+        .timeline-item:nth-child(even) .timeline-content {
+             /* Default is left aligned, just need margin */
+             margin-right: calc(50% + 40px); /* Push to the left (via margin) */
+             /* text-align: right; /* Align text to the right for left-side items */
+        }
+        /* Hover effect for timeline content */
+        .timeline-item .timeline-content:hover {
+            transform: scale(1.03); /* Slightly enlarge */
+            background: rgba(255, 255, 255, 0.15); /* Lighten background */
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: baseline; /* Align text baselines */
+            gap: 0.8rem; /* Space between date and heading */
+            margin-bottom: 0.5rem; /* Space below header */
+            flex-wrap: wrap; /* Allow wrapping if needed on small screens */
+        }
+
+        .timeline-date {
+            display: inline-block; /* Make it an inline block */
+            width: auto; /* Auto width based on content */
+            padding: 0.2rem 0.6rem; /* Padding around date text */
+            height: auto; /* Auto height */
+            background: linear-gradient(to right, var(--primary), var(--secondary)); /* Gradient background */
+            color: white;
+            border-radius: 12px; /* Rounded corners */
+            font-weight: bold;
+            font-size: 0.75rem; /* Small font size */
+            line-height: 1.4; /* Ensure text fits */
+            flex-shrink: 0; /* Prevent shrinking in flex container */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Optional: lighter shadow */
+        }
+
+        .timeline-content h3 {
+            margin-top: 0;
+            margin-bottom: 0; /* Let wrapper handle bottom margin */
+            color: var(--primary); /* Primary color for heading */
+            font-size: 1.3rem;
+        }
+        .timeline-content p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0; /* Remove default paragraph margin */
+        }
+
+        /* The dot on the timeline */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--accent); /* Accent color dot */
+            border-radius: 50%;
+            top: 1.5rem; /* Align with top padding of content box */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Center the dot perfectly on the line */
+            z-index: 3; /* Above the line, below content if overlapping */
+            border: 4px solid var(--dark); /* Border matching background */
+            box-shadow: 0 0 10px var(--accent); /* Add glow */
+        }
+
+        /* --- Buy Section --- */
+        .buy {
+            padding: 5rem 2rem;
+            background-color: rgba(0, 0, 0, 0.3); /* Dark overlay */
+            text-align: center;
+        }
+
+        .buy-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .buy > p { /* Style intro paragraph */
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 700px; /* Slightly narrower progress bar */
+            margin: 4rem auto 3rem; /* Adjusted margin */
+            position: relative;
+            text-align: center;
+        }
+        .progress-container > p { /* Text above progress bar */
+            margin-bottom: 0.8rem; /* More space */
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px; /* Slightly thinner bar */
+            background-color: rgba(255, 255, 255, 0.1); /* Base background */
+            border-radius: 15px; /* Rounded corners */
+            overflow: hidden; /* Clip the fill */
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Inner shadow for depth */
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--accent)); /* Gradient fill */
+            border-radius: 15px; /* Match container */
+            position: relative;
+            animation: pulse 2s infinite; /* Subtle pulse animation */
+            transition: width 0.5s ease-out; /* Animate width changes */
+        }
+
+        /* Pulse animation for progress fill */
+        @keyframes pulse {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(0.8); } /* Dim slightly */
+            100% { filter: brightness(1); }
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between; /* Space out start/end values */
+            margin-top: 0.8rem; /* Reduced space below bar */
+            padding: 0 5px; /* Slight padding */
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column; /* Stack steps vertically */
+            gap: 1.5rem; /* Reduced gap between steps */
+            margin-top: 4rem; /* More space before steps */
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.05); /* Subtle background */
+            border-radius: 10px;
+            padding: 1.5rem 2rem; /* Adjusted padding */
+            display: flex; /* Align number and content horizontally */
+            align-items: center;
+            gap: 1.5rem; /* Gap between number and content */
+            text-align: left; /* Align text to the left */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* Combined transitions for hover and animation */
+            transition: background 0.3s ease-out, transform 0.3s ease-out, opacity 0.4s ease-out, transform 0.4s ease-out;
+            opacity: 0; /* Start hidden for animation */
+            transform: translateX(-30px); /* Start left for animation */
+            transition-delay: calc(var(--animation-order) * 100ms); /* Stagger animation */
+        }
+        .step.visible { /* Class added by JS */
+            opacity: 1;
+            transform: translateX(0); /* Slide in */
+        }
+
+        .step:hover {
+            background: rgba(255, 255, 255, 0.1); /* Lighten on hover */
+            transform: scale(1.02); /* Keep hover scale effect */
+        }
+
+        .step-number {
+            width: 45px; /* Slightly smaller number circle */
+            height: 45px;
+            background: linear-gradient(to right, var(--primary), var(--secondary)); /* Gradient background */
+            border-radius: 50%; /* Circular */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            flex-shrink: 0; /* Prevent shrinking */
+            color: white;
+        }
+        .step-content h3 {
+            margin-top: 0;
+            margin-bottom: 0.3rem;
+            color: var(--light); /* Lighter heading */
+            font-size: 1.2rem;
+        }
+        .step-content p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        /* Removed contract address container styles as it's simpler now */
+        /* .contract-address-container { ... } */
+        /* .contract-address { ... } */
+        /* .copy-btn { ... } */
+
+
+        .token-calculator {
+            margin-top: 4rem; /* Space above calculator */
+            background: rgba(255, 255, 255, 0.07); /* Slightly more visible background */
+            border-radius: 15px;
+            padding: 2.5rem; /* More padding */
+            max-width: 500px; /* Limit calculator width */
+            margin-left: auto;
+            margin-right: auto; /* Center calculator */
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: center;
+            opacity: 0; /* Start hidden for animation */
+            transform: translateY(30px); /* Start lower for animation */
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out; /* Animate fade and slide */
+        }
+        .token-calculator.visible { /* Class added by JS */
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .token-calculator h3 {
+            margin-top: 0;
+            margin-bottom: 2rem; /* More space below heading */
+            font-size: 1.5rem;
+        }
+
+        .calculator-form {
+            display: flex;
+            flex-direction: column; /* Stack form elements */
+            gap: 1.5rem; /* Space between elements */
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column; /* Stack label and input */
+            text-align: left; /* Align label text left */
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            padding: 0.9rem; /* Slightly more padding */
+            border-radius: 8px; /* More rounded */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+            background-color: rgba(0, 0, 0, 0.2); /* Darker input background */
+            color: var(--light); /* Light text color */
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none; /* Remove default outline */
+            border-color: var(--primary); /* Highlight border on focus */
+            box-shadow: 0 0 8px rgba(255, 105, 180, 0.5); /* Pink glow on focus */
+        }
+
+        .calculator-result {
+            margin-top: 1rem; /* Reduced space above result */
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.3); /* Darker result background */
+            border-radius: 8px;
+            font-weight: 500; /* Normal weight */
+            text-align: center;
+            color: var(--light);
+            min-height: 2.5em; /* Reserve space to prevent layout shift */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Footer --- */
+        footer {
+            background-color: rgba(18, 3, 56, 0.8); /* Match header */
+            backdrop-filter: blur(5px); /* Match header */
+            -webkit-backdrop-filter: blur(5px);
+            padding: 4rem 2rem 2rem; /* Adjusted padding */
+            text-align: center;
+            margin-top: 5rem; /* Space above footer */
+            border-top: 1px solid rgba(255, 255, 255, 0.1); /* Add top border */
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column; /* Stack footer items */
+            align-items: center; /* Center items */
+        }
+        .footer-content .logo { /* Style logo in footer */
+            margin-bottom: 2rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1rem 0 2rem; /* Vertical margin */
+            gap: 1rem; /* Gap between social links */
+        }
+
+        .social-links a {
+            display: inline-flex; /* Use inline-flex for icon + text */
+            align-items: center;
+            gap: 0.6rem; /* Gap between icon and text */
+            width: auto; /* Auto width */
+            height: auto; /* Auto height */
+            padding: 0.6rem 1.2rem; /* Padding inside link */
+            border-radius: 25px; /* Rounded corners */
+            background-color: rgba(255, 255, 255, 0.1); /* Subtle background */
+            color: var(--light);
+            text-decoration: none;
+            transition: background-color 0.3s, transform 0.3s, color 0.3s; /* Smooth transitions */
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .social-links a svg { /* Style SVG icons */
+            width: 18px;
+            height: 18px;
+            fill: currentColor; /* Use text color for icon */
+            flex-shrink: 0; /* Prevent icon shrinking */
+        }
+
+        .social-links a:hover {
+            background-color: var(--primary); /* Change background on hover */
+            transform: translateY(-3px) scale(1.05); /* Lift effect */
+            color: white; /* Ensure text stays white on hover */
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem 2.5rem; /* Row and column gap for wrapping */
+            margin: 1rem 0 2rem; /* Adjusted margin */
+            flex-wrap: wrap; /* Allow links to wrap */
+        }
+
+        .footer-nav a {
+            color: var(--text-muted); /* Muted color */
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .footer-nav a:hover {
+            color: var(--primary); /* Highlight on hover */
+        }
+
+        .copyright {
+            margin-top: 2rem;
+            color: rgba(255, 255, 255, 0.4); /* More faded copyright text */
+            font-size: 0.85rem;
+        }
+
+        /* --- Popup Styles --- */
+        .popup {
+            display: none; /* Hidden by default */
+            position: fixed; /* Position relative to viewport */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9); /* Start smaller and centered */
+            padding: 2rem; /* Adjusted padding */
+            background-color: rgba(255, 255, 255, 0.98); /* More opaque white */
+            color: var(--popup-text); /* Use specific popup text color */
+            border-radius: 15px; /* More rounded */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+            z-index: 1100; /* Above nav overlay */
+            text-align: left; /* Left align content */
+            max-width: 90%; /* Max width relative to viewport */
+            width: 650px; /* Fixed width for larger screens */
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out; /* Animate fade and scale */
+        }
+        .popup.active {
+            display: block; /* Use block instead of flex/grid */
+            opacity: 1; /* Fade in */
+            transform: translate(-50%, -50%) scale(1); /* Scale in */
+        }
+
+        .popup h2 {
+            color: var(--primary); /* Primary color heading */
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            text-align: center; /* Center heading */
+            font-size: 1.8rem;
+        }
+
+        /* Tokenomics specific styles */
+        .tokenomics-details dl { margin: 0; padding: 0; } /* Reset definition list styles */
+        .tokenomics-details dt { font-weight: bold; color: var(--secondary); margin-top: 0.8rem; } /* Term style */
+        .tokenomics-details dd { margin-left: 0; margin-bottom: 0.5rem; color: var(--popup-text); } /* Definition style */
+        .tokenomics-details hr { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 1rem 0; } /* Separator */
+
+        /* Whitepaper Popup Content Styles */
+        .whitepaper-content {
+            max-height: 65vh; /* Limit height and allow scrolling */
+            overflow-y: auto; /* Enable vertical scroll */
+            padding-right: 1rem; /* Add padding for scrollbar */
+            margin-bottom: 1.5rem; /* Space before close button */
+            line-height: 1.7; /* Improve readability */
+            font-size: 0.95rem;
+        }
+        .whitepaper-content h3 {
+            color: var(--secondary); /* Use secondary color for subheadings */
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1); /* Subtle separator */
+            padding-bottom: 0.3rem;
+        }
+        .whitepaper-content h3:first-of-type {
+            margin-top: 0; /* No top margin for the first subheading */
+        }
+        .whitepaper-content p {
+            margin-bottom: 1rem;
+            color: var(--popup-text);
+        }
+        .whitepaper-content strong {
+            color: #111; /* Slightly darker for emphasis */
+        }
+        /* Style lists within whitepaper */
+        .whitepaper-content ul {
+            list-style: disc; /* Use standard disc bullets */
+            margin-left: 1.5rem; /* Indent list */
+            margin-bottom: 1rem;
+        }
+        .whitepaper-content li {
+            margin-bottom: 0.5rem; /* Space between list items */
+        }
+
+
+        /* Style for close buttons in popups */
+        .popup button.close-popup-btn {
+            display: block; /* Make button block */
+            margin: 1.5rem auto 0; /* Center button, adjusted margin */
+            padding: 0.8rem 2rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 25px; /* Match other buttons */
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            font-weight: bold;
+        }
+
+        .popup button.close-popup-btn:hover {
+            background-color: var(--secondary); /* Change color on hover */
+            transform: scale(1.05); /* Slight scale effect */
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            body {
+                /* Add padding top to prevent content from hiding behind fixed header */
+                padding-top: 65px; /* Adjust based on actual header height */
+            }
+            header {
+                padding: 0.5rem 1rem; /* Reduce header padding */
+            }
+            /* Hide desktop navigation and connect button */
+            nav .desktop-nav, nav .desktop-connect-btn {
+                display: none;
+            }
+            /* Show hamburger menu toggle */
+            .menu-toggle {
+                display: block;
+            }
+
+            .hero {
+                padding-top: 2rem; /* Reduce top padding */
+                min-height: calc(100vh - 65px); /* Adjust min-height considering header */
+            }
+            .hero h1 { font-size: 2.2rem; } /* Smaller heading */
+            .hero p { font-size: 1rem; } /* Smaller text */
+            .section-title { font-size: 2rem; } /* Smaller section titles */
+
+            /* Timeline adjustments for mobile */
+            .timeline::before { /* Move timeline bar to the left */
+                 left: 20px;
+                 transform: translateX(0);
+            }
+            .timeline-item::before { /* Move timeline dot to the left */
+                left: 20px;
+                transform: translateX(-50%);
+                top: 1.5rem; /* Align dot with content padding */
+            }
+            .timeline-content { /* Make content full width minus padding */
+                width: calc(100% - 60px); /* Adjust width */
+                margin-left: 50px !important; /* Force margin for all items */
+                margin-right: 0 !important;
+                padding: 1.5rem; /* Ensure padding is consistent */
+                text-align: left !important; /* Force left alignment */
+            }
+            /* Ensure both odd and even items are positioned correctly */
+            .timeline-item:nth-child(odd) .timeline-content,
+            .timeline-item:nth-child(even) .timeline-content {
+                 margin-left: 50px !important;
+                 margin-right: 0 !important;
+            }
+            .timeline-header { /* Stack date and heading */
+                flex-direction: column;
+                align-items: flex-start; /* Align items to start */
+                gap: 0.3rem; /* Reduce gap */
+                margin-bottom: 0.8rem; /* Add more space below header */
+            }
+            .timeline-date {
+                 margin-bottom: 0; /* Remove extra margin */
+            }
+            /* Reset horizontal transform for animation on mobile */
+            .timeline-item { transform: translateX(0) !important; }
+            .timeline-item.visible { transform: translateX(0) !important; }
+
+
+            /* Stack 'Buy' steps vertically */
+            .step { flex-direction: column; text-align: center; gap: 1rem; }
+            .step-content { text-align: center; }
+            /* .contract-address-container { justify-content: center; } */ /* Removed as container is gone */
+
+
+            /* Adjust team photos and text */
+            .team-photo { width: 150px; height: 150px; }
+            .team-member p:last-of-type { max-width: 90%; }
+
+            /* Adjust footer layout */
+            .footer-nav { gap: 1rem 1.5rem; } /* Reduce gap */
+            .social-links a { padding: 0.5rem 1rem; font-size: 0.8rem;} /* Adjust padding/size */
+            .social-links a svg { width: 16px; height: 16px;} /* Smaller icons */
+
+            /* Adjust popup size */
+            .popup { width: 90%; padding: 1.5rem; }
+            .whitepaper-content { max-height: 60vh; font-size: 0.9rem;} /* Adjust whitepaper font size */
+        }
+
+        /* --- Animation Trigger Class --- */
+        /* Keyframes for fade-in effect */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Base style for elements that will fade in */
+        .fade-in-section {
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out; /* Smooth transition */
+            transform: translateY(20px); /* Start slightly lower */
+        }
+        /* Style applied when element becomes visible */
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Simple status message style */
+        .wallet-status {
+            font-size: 0.8rem;
+            margin-left: 1rem; /* Space it from the button */
+            color: var(--text-muted);
+            display: none; /* Hidden by default */
+        }
+        .wallet-status.error { color: var(--error-color); }
+        .wallet-status.success { color: var(--success-color); }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#" class="logo" aria-label="KatyPerry Coin Home">
+                <div class="logo-icon"></div>
+                <div class="logo-text">KatyPerry Coin</div>
+            </a>
+            <ul class="desktop-nav">
+                <li><a href="#about">About</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#roadmap">Roadmap</a></li>
+                <li><a href="#buy">Buy</a></li>
+                <li><a href="#" id="tokenomics-link" role="button" aria-haspopup="true">Tokenomics</a></li>
+                <li><a href="#" id="whitepaper-link" role="button" aria-haspopup="true">Whitepaper</a></li>
+            </ul>
+            <button class="btn desktop-connect-btn connect-wallet-btn">Connect Wallet</button>
+            <span class="wallet-status" id="desktop-wallet-status"></span>
+            <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+                <span class="hamburger"></span>
+            </button>
+        </nav>
+    </header>
+
+    <ul class="mobile-nav" id="mobile-menu">
+        <li><a href="#about">About</a></li>
+        <li><a href="#team">Team</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#buy">Buy</a></li>
+        <li><a href="#" id="mobile-tokenomics-link" role="button" aria-haspopup="true">Tokenomics</a></li>
+         <li><a href="#" id="mobile-whitepaper-link" role="button" aria-haspopup="true">Whitepaper</a></li>
+        <li>
+            <button class="btn mobile-connect-btn connect-wallet-btn">Connect Wallet</button>
+            <span class="wallet-status" id="mobile-wallet-status"></span>
+        </li>
+    </ul>
+
+    <div class="space-animation" id="space"></div>
+
+    <section class="hero">
+        <div class="hero-content fade-in-section">
+            <h1>KatyPerry Coin</h1>
+            <p>The first cryptocurrency inspired by Katy Perry and the all-female crew mission to space. Join us as we reach for the stars!</p>
+            <a href="#buy" class="btn">Buy KatyPerry Now</a>
+        </div>
+    </section>
+
+    <section class="about fade-in-section" id="about">
+        <h2 class="section-title">Our Mission</h2>
+        <p>KatyPerry Coin is more than just a cryptocurrency - it's a movement celebrating women in space exploration, inspired by Katy Perry's cosmic anthems and her support for the groundbreaking all-female space mission. Our goal is to fund and promote women in STEM while creating a vibrant community of holders who believe in breaking barriers.</p>
+        <div class="mission-grid">
+            <div class="mission-card fade-in-section" style="--animation-order: 0;">
+                 <i>🚀</i> <h3>Fund Female Space Innovation</h3>
+                <p>10% of all transaction fees go directly to scholarships for women pursuing careers in aerospace and astronautics.</p>
+            </div>
+             <div class="mission-card fade-in-section" style="--animation-order: 1;">
+                <i>🌠</i> <h3>Community Governance</h3>
+                <p>KatyPerry holders vote on key decisions and initiatives, ensuring true decentralization and female representation.</p>
+            </div>
+             <div class="mission-card fade-in-section" style="--animation-order: 2;">
+                <i>💫</i> <h3>Exclusive Space Events</h3>
+                <p>Token holders gain access to virtual events with female astronauts, scientists, and special appearances by Katy Perry.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="team" id="team">
+        <div class="team-content">
+            <h2 class="section-title fade-in-section" style="--animation-order: 0;">The Stellar Team</h2>
+            <div class="team-grid">
+                <div class="team-member fade-in-section" style="--animation-order: 1;">
+                    <div class="team-photo">
+                         <img src="https://placehold.co/200x200/ff69b4/120338?text=KP" alt="Katy Perry Placeholder" onerror="this.src='https://placehold.co/200x200/ff69b4/120338?text=KP'; this.onerror=null;">
+                    </div>
+                    <h3>Katy Perry</h3>
+                    <p>Honorary Advisor</p>
+                    <p>Pop icon and space enthusiast lending her star power to our mission.</p>
+                </div>
+                <div class="team-member fade-in-section" style="--animation-order: 2;">
+                    <div class="team-photo">
+                        <img src="https://placehold.co/200x200/9932cc/f8f9fa?text=LS" alt="Lauren Sánchez Placeholder" onerror="this.src='https://placehold.co/200x200/9932cc/f8f9fa?text=LS'; this.onerror=null;">
+                    </div>
+                    <h3>Lauren Sánchez</h3>
+                    <p>CEO & Founder</p>
+                    <p>Journalist, pilot, instrumental in assembling the all-female space crew.</p>
+                </div>
+                <div class="team-member fade-in-section" style="--animation-order: 3;">
+                    <div class="team-photo">
+                         <img src="https://placehold.co/200x200/00bfff/120338?text=LM" alt="Luna Martinez Placeholder" onerror="this.src='https://placehold.co/200x200/00bfff/120338?text=LM'; this.onerror=null;">
+                    </div>
+                    <h3>Luna Martinez</h3>
+                    <p>CTO</p>
+                    <p>Blockchain expert with previous experience at Ethereum Foundation & SpaceX.</p>
+                </div>
+                <div class="team-member fade-in-section" style="--animation-order: 4;">
+                    <div class="team-photo">
+                         <img src="https://placehold.co/200x200/ff69b4/f8f9fa?text=NC" alt="Nova Chang Placeholder" onerror="this.src='https://placehold.co/200x200/ff69b4/f8f9fa?text=NC'; this.onerror=null;">
+                    </div>
+                    <h3>Nova Chang</h3>
+                    <p>Community Lead</p>
+                    <p>Social media strategist experienced in tech and women in STEM initiatives.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="roadmap" id="roadmap">
+        <h2 class="section-title fade-in-section" style="--animation-order: 0;">Cosmic Roadmap</h2>
+        <div class="timeline">
+            <div class="timeline-item fade-in-section" style="--animation-order: 1;">
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <span class="timeline-date">Q2 2025</span>
+                        <h3>Launch</h3>
+                    </div>
+                    <p>KatyPerry Coin launches on DEXs with $2.5M initial liquidity. First 1,000 holders get exclusive NFTs.</p>
+                </div>
+            </div>
+            <div class="timeline-item fade-in-section" style="--animation-order: 2;">
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <span class="timeline-date">Q3 2025</span>
+                        <h3>Expansion</h3>
+                    </div>
+                    <p>Major CEX listings. Launch KatyPerry Foundation for scholarships. Exclusive virtual concert.</p>
+                </div>
+            </div>
+            <div class="timeline-item fade-in-section" style="--animation-order: 3;">
+                <div class="timeline-content">
+                     <div class="timeline-header">
+                        <span class="timeline-date">Q4 2025</span>
+                        <h3>Innovation</h3>
+                    </div>
+                    <p>Release NFT marketplace. Introduce staking program with enhanced APY for long-term holders.</p>
+                </div>
+            </div>
+            <div class="timeline-item fade-in-section" style="--animation-order: 4;">
+                <div class="timeline-content">
+                     <div class="timeline-header">
+                        <span class="timeline-date">Q1 2026</span>
+                        <h3>Partnership</h3>
+                    </div>
+                    <p>Partner with space research org. Launch KatyPerry Launchpad. Community-voted initiatives.</p>
+                </div>
+            </div>
+            <div class="timeline-item fade-in-section" style="--animation-order: 5;">
+                <div class="timeline-content">
+                     <div class="timeline-header">
+                        <span class="timeline-date">Q2 2026</span>
+                        <h3>To Infinity</h3>
+                    </div>
+                    <p>First KPC-funded satellite launch. Global conference on women in space.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="buy" id="buy">
+        <div class="buy-content">
+            <h2 class="section-title fade-in-section" style="--animation-order: 0;">Buy KatyPerry Coin</h2>
+            <p class="fade-in-section" style="--animation-order: 1;">Join our cosmic community and be part of the movement empowering women in space exploration.</p>
+
+            <div class="progress-container fade-in-section" style="--animation-order: 2;">
+                <p>Token Sale Progress: <span id="progress-percentage">35</span>% Complete</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 35%;"></div>
+                </div>
+                <div class="progress-stats">
+                    <span>0 KPC</span>
+                    <span>500M KPC</span>
+                </div>
+            </div>
+
+            <div class="steps">
+                 <div class="step fade-in-section" style="--animation-order: 3;">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Create a Wallet</h3>
+                        <p>Download & set up Phantom or Solflare wallet.</p>
+                    </div>
+                </div>
+                 <div class="step fade-in-section" style="--animation-order: 4;">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Get SOL</h3>
+                        <p>Get SOL from Coinbase, Kraken, etc., and send it to your wallet.</p>
+                    </div>
+                </div>
+                 <div class="step fade-in-section" style="--animation-order: 5;">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Connect to DEX</h3>
+                        <p>Visit Raydium or Jupiter and connect your wallet.</p>
+                    </div>
+                </div>
+                 <div class="step fade-in-section" style="--animation-order: 6;">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Swap for KatyPerry</h3>
+                        <p>Buy on Pump.fun</p> <p>Swap your SOL for KatyPerry Coin (KPC).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="token-calculator fade-in-section" style="--animation-order: 7;">
+                <h3>Token Calculator</h3>
+                <div class="calculator-form">
+                    <div class="form-group">
+                        <label for="sol-amount">SOL Amount</label>
+                        <input type="number" id="sol-amount" placeholder="Enter SOL amount" min="0.1" step="0.1" value="1">
+                    </div>
+                    <button class="btn" onclick="calculateTokens()">Calculate</button>
+                    <div class="calculator-result" id="calculator-result">
+                        &nbsp; </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <div class="logo-text">KatyPerry Coin</div>
+            </div>
+
+            <div class="social-links">
+                 <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter" title="Twitter"> <svg viewBox="0 0 24 24"><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733a4.67 4.67 0 0 0 2.048-2.578 9.3 9.3 0 0 1-2.958 1.13 4.66 4.66 0 0 0-7.938 4.25 13.229 13.229 0 0 1-9.602-4.868c-.4.69-.63 1.49-.63 2.342A4.66 4.66 0 0 0 3.96 9.824a4.647 4.647 0 0 1-2.11-.583v.06a4.66 4.66 0 0 0 3.737 4.568 4.69 4.69 0 0 1-2.104.08 4.661 4.661 0 0 0 4.35 3.234 9.348 9.348 0 0 1-5.786 1.995c-.376 0-.747-.022-1.112-.065a13.175 13.175 0 0 0 7.14 2.093c8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602a9.49 9.49 0 0 0 2.323-2.41z"/></svg>
+                     <span>Find us on Twitter!</span>
+                 </a>
+                 </div>
+
+            <div class="footer-nav">
+                 <a href="#" id="footer-whitepaper-link" role="button" aria-haspopup="true">Whitepaper</a>
+                 <a href="#" id="footer-tokenomics-link" role="button" aria-haspopup="true">Tokenomics</a>
+                 </div>
+
+            <p class="copyright">&copy; 2025 KatyPerry Coin. All rights reserved. Not financial advice.</p>
+        </div>
+    </footer>
+
+    <div id="tokenomics-popup" class="popup" role="dialog" aria-labelledby="tokenomics-heading" aria-modal="true">
+        <h2 id="tokenomics-heading">Tokenomics</h2>
+        <div class="tokenomics-details">
+            <dl>
+                <dt>Total Supply:</dt> <dd>1,000,000,000 KPC</dd>
+                <dt>Presale Allocation:</dt> <dd>30%</dd>
+                <dt>Liquidity Pool:</dt> <dd>25% (Locked)</dd>
+                <dt>Team & Advisors:</dt> <dd>10% (Vested over 24 months)</dd>
+                <dt>Marketing & Development:</dt> <dd>15%</dd>
+                <dt>Foundation/Charity:</dt> <dd>10%</dd>
+                <dt>Airdrops & Community Rewards:</dt> <dd>10%</dd>
+            </dl>
+            <hr>
+            <dl>
+                 <dt>Transaction Tax:</dt> <dd>5% Total</dd>
+                 <dd style="padding-left: 1rem;">- 2% Reflection to Holders</dd>
+                 <dd style="padding-left: 1rem;">- 2% Added to Liquidity Pool</dd>
+                 <dd style="padding-left: 1rem;">- 1% To Charity Wallet</dd>
+             </dl>
+        </div>
+        <button id="close-tokenomics-popup" class="close-popup-btn" aria-label="Close tokenomics popup">Close</button>
+    </div>
+
+    <div id="whitepaper-popup" class="popup" role="dialog" aria-labelledby="whitepaper-heading" aria-modal="true">
+        <h2 id="whitepaper-heading">KatyPerry Coin Whitepaper</h2>
+        <div class="whitepaper-content">
+            <h3>KatyPerry Coin (KPC) - A Revolutionary Cryptocurrency</h3>
+            <p>Hey there! We're thrilled to introduce KatyPerry Coin - a revolutionary cryptocurrency project that transcends typical meme coin status.</p>
+
+            <h3>Abstract</h3>
+            <p>KatyPerry Coin (KPC) is a revolutionary cryptocurrency project inspired by the iconic Katy Perry and the groundbreaking all-female space mission she champions. KPC aims to transcend typical meme coin status by fostering a vibrant community, driving real-world impact through funding women in STEM, and offering unique utility within its ecosystem. We're not just aiming for the moon; we're building launchpads for future generations.</p>
+
+            <h3>1. Introduction: Beyond the Hype</h3>
+            <p>The crypto space is saturated. Many projects launch with fleeting hype but lack substance or a clear vision. KPC enters the arena differently. Inspired by themes of empowerment, reaching for the stars, and breaking barriers – echoing Katy Perry's anthems and the spirit of female space exploration – KPC is built on a foundation of purpose. We believe cryptocurrency can be a powerful tool for community building and positive change. This isn't just about speculation; it's about joining a movement.</p>
+
+            <h3>2. The Challenge: Breaking Orbits</h3>
+            <p>Two significant challenges exist:</p>
+            <ul>
+                <li><strong>Underrepresentation:</strong> Women remain significantly underrepresented in STEM fields, particularly aerospace. Financial barriers and lack of visible role models hinder progress.</li>
+                <li><strong>Crypto Volatility & Utility:</strong> Many tokens lack real-world application, leading to pump-and-dump schemes that erode trust.</li>
+            </ul>
+            <p>KPC tackles both. We're facing the challenge of creating sustainable value and showing that a themed coin can have genuine impact.</p>
+
+            <h3>3. The KPC Vision: To the Stars</h3>
+            <p>Our vision is twofold:</p>
+            <ul>
+                <li><strong>Empowerment through Funding:</strong> Directly support women pursuing STEM careers via the KatyPerry Foundation, funded by transaction taxes.</li>
+                <li><strong>Community & Utility:</strong> Create a strong, engaged "Kat Fanz" community with governance rights, exclusive access to events (virtual concerts, AMAs with astronauts/scientists), and an NFT marketplace celebrating cosmic themes and female pioneers.</li>
+            </ul>
+            <p>KPC aims to be the premier coin for those who believe in pushing boundaries – in space and on Earth.</p>
+
+            <h3>4. Technology: The Launchpad</h3>
+            <p>KPC is initially launched as an SPL token on the <strong>Solana blockchain</strong>, chosen for its high speed, low transaction costs, and growing ecosystem. Smart contracts (programs on Solana) govern the core functions:</p>
+            <ul>
+                <li><strong>Tokenomics:</strong> Automated collection of transaction taxes for liquidity, reflections, and the Foundation wallet.</li>
+                <li><strong>Staking:</strong> Secure programs for rewarding long-term holders.</li>
+                <li><strong>Governance:</strong> On-chain voting mechanisms for KPC holders (future implementation).</li>
+                <li><strong>NFT Marketplace:</strong> Smart contracts for minting, buying, and selling unique KPC NFTs using standards like Metaplex.</li>
+            </ul>
+            <p>We're all about security and transparency, with planned audits for all major programs.</p>
+
+            <h3>5. Tokenomics: Fueling the Mission</h3>
+            <p>KPC employs a sustainable tokenomics model designed for growth and impact. Key features include:</p>
+            <ul>
+                <li><strong>Reflection:</strong> Rewarding holders simply for holding.</li>
+                <li><strong>Liquidity Acquisition:</strong> Ensuring stable trading on DEXs.</li>
+                <li><strong>Foundation Fund:</strong> Dedicated tax allocation for STEM scholarships.</li>
+                <li><strong>Marketing & Development Wallet:</strong> Fueling growth and platform enhancements.</li>
+                <li><strong>Vested Team Tokens:</strong> Ensuring long-term commitment.</li>
+            </ul>
+            <p>This structure incentivizes holding, supports the chart, and directly funds our core mission.</p>
+
+            <h3>6. Roadmap Summary: Flight Plan</h3>
+            <p>Our roadmap outlines a phased approach from launch to orbit:</p>
+            <ul>
+                <li><strong>Phase 1 (Launch):</strong> DEX launch (Raydium/Jupiter), initial marketing, community building, NFT airdrop.</li>
+                <li><strong>Phase 2 (Expansion):</strong> CEX listings, Foundation launch, virtual events, staking program.</li>
+                <li><strong>Phase 3 (Innovation):</strong> NFT Marketplace launch, strategic partnerships, Launchpad development.</li>
+                <li><strong>Phase 4 (To Infinity):</strong> KPC-funded initiatives (e.g., satellite, conference), DAO governance implementation.</li>
+            </ul>
+            <p>We're totally committed to hitting these milestones and adapting as the project evolves.</p>
+
+            <h3>7. Community & Ecosystem: Our Universe</h3>
+            <p>The KPC community is the core of the project. We'll foster engagement through:</p>
+            <ul>
+                <li><strong>Social Media:</strong> Active presence on Twitter, Telegram, Discord.</li>
+                <li><strong>Exclusive Events:</strong> AMAs, virtual concerts, educational sessions accessible to holders.</li>
+                <li><strong>Governance:</strong> Empowering holders to shape the future of KPC.</li>
+                <li><strong>NFT Utility:</strong> NFTs providing potential access or boosts within the ecosystem.</li>
+            </ul>
+            <p>We're building more than just a holder base; we're creating a supportive network inspired by shared goals.</p>
+
+            <h3>8. Conclusion: Join the Constellation</h3>
+            <p>KatyPerry Coin is an ambitious project blending pop culture inspiration with tangible goals. We're leveraging the speed and efficiency of the Solana blockchain to build a dedicated community, empower women in STEM, and create lasting value. This is an invitation to move beyond fleeting trends and join a mission with purpose. Grab your KPC, become part of the story, and let's reach for the stars, together! 🚀</p>
+        </div>
+         <button id="close-whitepaper-popup" class="close-popup-btn" aria-label="Close whitepaper popup">Close</button>
+    </div>
+
+
+    <script>
+        // --- Starfield Animation ---
+        // Creates a background animation with twinkling stars.
+        document.addEventListener('DOMContentLoaded', function() {
+            const spaceContainer = document.getElementById('space');
+            if (!spaceContainer) {
+                console.warn("Space animation container not found.");
+                return; // Exit if container doesn't exist
+            }
+            const starsCount = 150; // Number of stars to generate
+
+            // Loop to create each star element
+            for (let i = 0; i < starsCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+
+                // Randomize star properties
+                const x = Math.random() * 100; // Horizontal position (%)
+                const y = Math.random() * 100; // Vertical position (%)
+                const size = Math.random() * 2 + 0.5; // Size (px)
+                const duration = Math.random() * 4 + 3; // Animation duration (s)
+                const delay = Math.random() * 2; // Animation delay (s)
+
+                // Apply styles inline
+                star.style.cssText = `width:${size}px; height:${size}px; left:${x}%; top:${y}%; animation-duration:${duration}s; animation-delay:${delay}s;`;
+
+                // Add star to the container
+                spaceContainer.appendChild(star);
+            }
+        });
+
+        // --- Token Calculator (Updated for SOL) ---
+        // Calculates the approximate amount of KPC tokens for a given SOL amount.
+        function calculateTokens() {
+            // Get input and display elements
+            const solAmountInput = document.getElementById('sol-amount'); // Changed ID to match HTML
+            const resultDisplay = document.getElementById('calculator-result');
+
+            // Basic error checking
+            if (!solAmountInput || !resultDisplay) {
+                 console.error("Calculator elements not found.");
+                 return;
+            }
+
+            // Get SOL amount from input, default to 0 if invalid
+            const solAmount = parseFloat(solAmountInput.value) || 0;
+
+            // --- Placeholder Values (IMPORTANT: Replace with actual data fetching) ---
+            // In a real application, these values should be fetched from an API
+            // (e.g., CoinGecko, Jupiter API, or your own backend)
+            const solPriceUSD = 150; // Example: Current SOL price in USD
+            const tokenPriceUSD = 0.015; // Example: Current KPC token price in USD
+            // --------------------------------------------------------------------
+
+            // Clear result if input is invalid or zero
+            if (solAmount <= 0) {
+                resultDisplay.innerHTML = '&nbsp;'; // Use non-breaking space to maintain height
+                return;
+            }
+
+            // Calculate equivalent value in USD and then token amount
+            const solValueUSD = solAmount * solPriceUSD;
+            // Use Math.floor to show whole tokens, adjust if fractional tokens are desired
+            const tokensAmount = Math.floor(solValueUSD / tokenPriceUSD);
+
+            // Display the result, formatted with commas for readability
+            resultDisplay.innerText =
+                `${solAmount} SOL ≈ ${tokensAmount.toLocaleString()} KPC Tokens`; // Changed ETH to SOL
+        }
+        // Run the calculation once when the page loads with the default value
+        document.addEventListener('DOMContentLoaded', calculateTokens);
+
+
+        // --- Popup Functionality ---
+        // Generic function to handle opening and closing of popup modals.
+        function setupPopup(triggerIds, popupId, closeBtnId) {
+            const popup = document.getElementById(popupId);
+            const closeBtn = document.getElementById(closeBtnId);
+            // Get all trigger elements by their IDs and filter out any that don't exist
+            const triggers = triggerIds.map(id => document.getElementById(id)).filter(el => el !== null);
+
+            // Check if essential elements (popup and close button) exist
+            if (!popup) {
+                 console.error(`Popup element with ID "${popupId}" not found.`);
+                 return;
+            }
+             if (!closeBtn) {
+                 console.error(`Close button with ID "${closeBtnId}" not found for popup "${popupId}".`);
+                 return;
+             }
+             if (triggers.length === 0) {
+                // console.warn(`No trigger elements found for popup "${popupId}".`);
+             }
+
+
+            // Function to open the popup
+            const openPopup = (event) => {
+                if (event) event.preventDefault(); // Prevent default link behavior
+                popup.style.display = 'block'; // Make popup visible first for transition
+                requestAnimationFrame(() => {
+                    setTimeout(() => popup.classList.add('active'), 10); // Add 'active' class shortly after display
+                });
+                closeBtn.focus(); // Set focus to the close button for accessibility
+            };
+
+            // Function to close the popup
+            const closePopup = () => {
+                popup.classList.remove('active'); // Remove 'active' class to trigger closing transition
+                popup.addEventListener('transitionend', () => {
+                    if (!popup.classList.contains('active')) {
+                         popup.style.display = 'none';
+                    }
+                }, { once: true }); // Use 'once: true' to automatically remove the listener
+            };
+
+            // Add click listeners to all trigger elements
+            triggers.forEach(trigger => {
+                if(trigger) { // Double check trigger exists
+                    trigger.addEventListener('click', openPopup);
+                }
+            });
+
+            // Add click listener to the close button
+            closeBtn.addEventListener('click', closePopup);
+
+            // Add listener to close popup when clicking outside the content area (on the overlay)
+            popup.addEventListener('click', (event) => {
+                 if (event.target === popup) {
+                      closePopup();
+                 }
+            });
+
+
+            // Add listener to close popup with the Escape key
+            document.addEventListener('keydown', (event) => {
+                if (event.key === "Escape" && popup.classList.contains('active')) {
+                    closePopup();
+                }
+            });
+        }
+
+        // Setup popups when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup Tokenomics Popup
+            setupPopup(
+                ['tokenomics-link', 'mobile-tokenomics-link', 'footer-tokenomics-link'], // Trigger IDs
+                'tokenomics-popup',      // Popup ID
+                'close-tokenomics-popup' // Close button ID
+            );
+
+            // Setup Whitepaper Popup
+            setupPopup(
+                ['whitepaper-link', 'mobile-whitepaper-link', 'footer-whitepaper-link'], // Trigger IDs
+                'whitepaper-popup',      // Popup ID
+                'close-whitepaper-popup' // Close button ID
+            );
+        });
+
+
+        // --- Mobile Menu Toggle ---
+        // Handles the opening and closing of the mobile navigation menu.
+        document.addEventListener('DOMContentLoaded', function() {
+             const menuToggle = document.querySelector('.menu-toggle');
+             const mobileNav = document.getElementById('mobile-menu');
+             if (!menuToggle || !mobileNav) {
+                console.warn("Mobile menu toggle or navigation element not found.");
+                return;
+             }
+
+             // Toggle menu visibility on button click
+             menuToggle.addEventListener('click', function() {
+                 const isActive = mobileNav.classList.toggle('active'); // Toggle nav visibility
+                 menuToggle.classList.toggle('active'); // Toggle button 'X' state
+                 menuToggle.setAttribute('aria-expanded', isActive); // Update accessibility attribute
+             });
+
+             // Close the mobile menu when certain items inside it are clicked
+             mobileNav.querySelectorAll('a:not([aria-haspopup="true"]), .mobile-connect-btn').forEach(item => {
+                 item.addEventListener('click', (e) => {
+                    // Don't close if it's a popup trigger (handled by setupPopup)
+                    // Do close if it's a regular link or the connect wallet button
+                     if (!item.getAttribute('aria-haspopup')) {
+                         mobileNav.classList.remove('active');
+                         menuToggle.classList.remove('active');
+                         menuToggle.setAttribute('aria-expanded', 'false');
+                     }
+                 });
+             });
+        });
+
+        // --- Intersection Observer for Animations ---
+        // Fades in elements as they scroll into view.
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+            const observerCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const delay = (parseInt(entry.target.style.getPropertyValue('--animation-order') || '0') * 100); // Delay in ms
+                        setTimeout(() => { entry.target.classList.add('visible'); }, delay);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            const observer = new IntersectionObserver(observerCallback, observerOptions);
+            const elementsToAnimate = document.querySelectorAll('.fade-in-section');
+            elementsToAnimate.forEach(el => observer.observe(el));
+        });
+
+        // --- Wallet Connection (Phantom) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const connectWalletButtons = document.querySelectorAll('.connect-wallet-btn');
+            const desktopStatus = document.getElementById('desktop-wallet-status');
+            const mobileStatus = document.getElementById('mobile-wallet-status');
+            let connectedAccount = null; // Variable to store connected account info
+
+            // Function to update button text and status
+            const updateButtonState = (button, text, isConnected = false, isError = false, message = '') => {
+                button.textContent = text;
+                button.disabled = isConnected; // Disable button if connected
+                button.classList.toggle('connected', isConnected); // Add 'connected' class for styling
+
+                // Update status messages
+                const statusElement = button.classList.contains('desktop-connect-btn') ? desktopStatus : mobileStatus;
+                if (statusElement) {
+                    statusElement.textContent = message;
+                    statusElement.classList.remove('success', 'error');
+                    if (isError) statusElement.classList.add('error');
+                    if (isConnected) statusElement.classList.add('success');
+                    statusElement.style.display = message ? 'inline' : 'none'; // Show/hide status
+                }
+            };
+
+            // Function to truncate wallet address
+            const truncateAddress = (address) => {
+                if (!address) return '';
+                return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+            };
+
+            // The core function to connect to Phantom
+            const connectWallet = async (event) => {
+                const clickedButton = event.target;
+                const isDesktop = clickedButton.classList.contains('desktop-connect-btn');
+                const statusElement = isDesktop ? desktopStatus : mobileStatus;
+
+                // Clear previous status messages
+                if (statusElement) {
+                    statusElement.textContent = '';
+                    statusElement.style.display = 'none';
+                }
+
+                // Check if Phantom provider exists
+                const provider = window.phantom?.solana;
+
+                if (provider?.isPhantom) {
+                    console.log('Phantom wallet found!');
+                    updateButtonState(clickedButton, 'Connecting...', false); // Update button text
+                    try {
+                        // Attempt to connect
+                        const resp = await provider.connect();
+                        connectedAccount = resp.publicKey.toString();
+                        console.log('Wallet connected:', connectedAccount);
+
+                        // Update all connect buttons to show connected state
+                        connectWalletButtons.forEach(btn => {
+                            updateButtonState(btn, `Connected: ${truncateAddress(connectedAccount)}`, true, false);
+                        });
+                         // Optionally show a success message briefly
+                         if (statusElement) {
+                            updateButtonState(clickedButton, `Connected: ${truncateAddress(connectedAccount)}`, true, false, 'Connected!');
+                            setTimeout(() => {
+                                if (statusElement.textContent === 'Connected!') {
+                                    statusElement.textContent = '';
+                                    statusElement.style.display = 'none';
+                                }
+                            }, 3000); // Hide message after 3 seconds
+                         }
+
+                    } catch (err) {
+                        // Handle errors (e.g., user rejection)
+                        console.error('Connection failed:', err);
+                        connectedAccount = null;
+                        // Update all buttons back to initial state
+                        connectWalletButtons.forEach(btn => {
+                             updateButtonState(btn, 'Connect Wallet', false, true);
+                        });
+                        // Show error message
+                         if (statusElement) updateButtonState(clickedButton, 'Connect Wallet', false, true, 'Connection failed.');
+
+                    }
+                } else {
+                    // Phantom extension not found
+                    console.warn('Phantom wallet not found. Please install Phantom extension.');
+                    connectedAccount = null;
+                     // Update all buttons back to initial state
+                     connectWalletButtons.forEach(btn => {
+                         updateButtonState(btn, 'Connect Wallet', false, true);
+                     });
+                     // Show error message
+                     if (statusElement) updateButtonState(clickedButton, 'Connect Wallet', false, true, 'Phantom not found!');
+
+                     // Optionally redirect to Phantom install page
+                     // window.open('https://phantom.app/', '_blank');
+                }
+            };
+
+            // Add event listener to all connect buttons
+            connectWalletButtons.forEach(button => {
+                button.addEventListener('click', connectWallet);
+            });
+
+             // Optional: Check connection status on load (if Phantom allows)
+             const checkConnectionOnLoad = async () => {
+                const provider = window.phantom?.solana;
+                if (provider?.isPhantom && provider.isConnected) {
+                     // Note: Phantom might not expose isConnected directly or might require an explicit connect call on load.
+                     // This part might need adjustment based on Phantom's specific API behavior.
+                     // For simplicity, we often rely on the user clicking connect.
+                     // If you *need* to auto-connect, you might call provider.connect({ onlyIfTrusted: true }) here.
+                    console.log("Attempting to check connection on load...");
+                     try {
+                        // Silently try to connect if already trusted
+                        const resp = await provider.connect({ onlyIfTrusted: true });
+                        connectedAccount = resp.publicKey.toString();
+                         console.log('Auto-reconnected to:', connectedAccount);
+                         connectWalletButtons.forEach(btn => {
+                            updateButtonState(btn, `Connected: ${truncateAddress(connectedAccount)}`, true, false);
+                        });
+                     } catch (err) {
+                         console.log("Not auto-reconnected or user interaction needed.");
+                        // Wallet not connected or requires interaction
+                        connectedAccount = null;
+                        connectWalletButtons.forEach(btn => {
+                             updateButtonState(btn, 'Connect Wallet', false);
+                        });
+                     }
+                } else {
+                     connectWalletButtons.forEach(btn => {
+                         updateButtonState(btn, 'Connect Wallet', false);
+                     });
+                }
+            };
+
+            // Run the check on load
+            // checkConnectionOnLoad(); // Uncomment if you want to try auto-reconnection
+
+        });
+
+
+    </script>
+</body>
+</html>

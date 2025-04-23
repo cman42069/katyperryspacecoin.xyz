@@ -1,29 +1,855 @@
-
- Versions: 0 / 3
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Generated Website</title>
+    <title>Website.io - Freeform Builder (AI & Crypto Tools)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* --- General Styles --- */
         *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        .website-container {
-            position: relative; /* Needed for absolute positioning of elements */
-            max-width: 1200px; /* Match canvas max-width */
-            height: 800px; /* Use the actual canvas height */
-            margin: 20px auto; /* Center the container */
-            padding: 20px; /* Add some padding */
-            border: 1px solid #eee; /* Optional border */
-            overflow: hidden; /* Prevent overflow */
+        html, body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f8f9fa; color: #333; height: 100%; overflow: hidden; }
+
+        /* --- Builder Layout --- */
+        .builder-container { display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- Top Bar --- */
+        .builder-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background-color: white;
+            border-bottom: 1px solid rgba(217, 122, 51, 0.15); /* Lighter border */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            z-index: 100; /* Ensure top bar is above other elements */
+            flex-shrink: 0; /* Prevent top bar from shrinking */
         }
-        
+        .top-bar-left { display: flex; align-items: center; gap: 20px; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: #D97A33; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .logo i { font-size: 1.2rem; }
+        .top-bar-right { display: flex; align-items: center; gap: 15px; }
+        .version-info { font-size: 0.9rem; color: #666; padding: 5px 10px; background-color: #f5f5f5; border-radius: 20px; }
+
+        /* --- Buttons --- */
+        .btn {
+            border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;
+        }
+        .btn-primary { background-color: #D97A33; color: white; box-shadow: 0 2px 5px rgba(217, 122, 51, 0.2); }
+        .btn-primary:hover:not(:disabled) { background-color: #c46621; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(217, 122, 51, 0.3); }
+        .btn-secondary { background-color: white; color: #D97A33; border: 1px solid #D97A33; }
+        .btn-secondary:hover { background-color: #fff8f2; transform: translateY(-1px); }
+        .btn-icon { padding: 8px; border-radius: 6px; background-color: #f5f5f5; color: #555; border: 1px solid #ddd; }
+        .btn-icon:hover { background-color: #eee; color: #D97A33; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+        /* --- Main Builder Area --- */
+        .builder-main { display: flex; flex: 1; overflow: hidden; }
+
+        /* --- Sidebar --- */
+        .builder-sidebar {
+            width: 280px; /* Default width */
+            min-width: 200px; /* Minimum width */
+            max-width: 500px; /* Maximum width */
+            background-color: white;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: none; /* Remove transition for instant resize */
+            flex-shrink: 0; /* Prevent shrinking beyond min-width */
+        }
+        .sidebar-tabs { display: flex; border-bottom: 1px solid #eee; flex-shrink: 0; }
+        .sidebar-tab { flex: 1; padding: 12px 15px; text-align: center; cursor: pointer; font-weight: 500; color: #666; border-bottom: 2px solid transparent; transition: all 0.2s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;} /* Adjusted font size */
+        .sidebar-tab i { margin-right: 4px; } /* Space between icon and text */
+        .sidebar-tab.active { color: #D97A33; border-bottom-color: #D97A33; background-color: #fff8f2; }
+        .sidebar-tab:hover:not(.active) { background-color: #f9f9f9; color: #333; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 15px; }
+        #code-tab, #ai-tab, #crypto-tab { display: flex; flex-direction: column; padding-top: 0; padding-bottom: 0; height: 100%; box-sizing: border-box; } /* Ensure tabs take full height */
+        .sidebar-section { margin-bottom: 15px; }
+        #code-tab .sidebar-section, #ai-tab .sidebar-section, #crypto-tab .sidebar-section { flex: 1; display: flex; flex-direction: column; margin-bottom: 0; height: auto; } /* Adjust height for sections in these tabs */
+        /* Ensure code section fills remaining height */
+        #code-tab .sidebar-section:first-child { flex: 1; }
+        .sidebar-section-title {
+            font-weight: 600; margin-bottom: 12px; color: #555; display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0; cursor: pointer; user-select: none; /* Prevent text selection */
+            padding: 5px 0; /* Add some padding for easier clicking */
+        }
+        .sidebar-section-title .section-icon {
+            color: #999; font-size: 0.9rem; transition: transform 0.2s ease-in-out;
+        }
+        .sidebar-section-content {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            overflow: hidden; /* Hide content when collapsed */
+            max-height: 1000px; /* Allow space for content (adjust as needed) */
+            transition: max-height 0.3s ease-out, margin-top 0.3s ease-out, opacity 0.2s ease-out;
+            margin-top: 0;
+            opacity: 1;
+        }
+        /* Single column layout for AI and Crypto tabs */
+        #ai-tab .sidebar-section-content,
+        #crypto-tab .sidebar-section-content {
+            display: block; /* Override grid */
+        }
+        /* Collapsed state for sections */
+        .sidebar-section.collapsed .sidebar-section-content {
+            max-height: 0;
+            margin-top: -10px; /* Pull content up slightly */
+            opacity: 0;
+            visibility: hidden; /* Ensure it's not focusable */
+            pointer-events: none; /* Disable interaction */
+        }
+        .sidebar-section.collapsed .section-icon {
+            transform: rotate(-90deg); /* Rotate chevron */
+        }
+
+        /* --- Sidebar Resizer --- */
+        #sidebar-resizer {
+            width: 8px; /* Thickness of the handle */
+            background-color: #e0e0e0; /* Default background */
+            cursor: col-resize; /* Horizontal resize cursor */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Prevent shrinking */
+            position: relative; /* For potential future z-index needs */
+            z-index: 5; /* Above sidebar content, below properties panel if overlapping */
+            transition: background-color 0.2s ease;
+        }
+        #sidebar-resizer:hover { background-color: #ccc; } /* Darker on hover */
+        #sidebar-resizer i { color: #666; font-size: 0.8rem; pointer-events: none; } /* Style the icon */
+        body.resizing-sidebar { cursor: col-resize !important; user-select: none; } /* Global cursor change during resize */
+
+        /* Tool Items (Grid layout in sidebar) */
+        .tool-item {
+            background-color: #f9f9f9; border: 1px solid #eee; padding: 12px; border-radius: 6px; cursor: grab; /* Indicate draggable */
+            font-weight: 500; font-size: 0.85rem; transition: all 0.2s ease; text-align: center; user-select: none;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .tool-item i { font-size: 1.1rem; color: #D97A33; pointer-events: none; } /* Prevent icon interference */
+        .tool-item span { pointer-events: none; } /* Prevent span interference */
+        .tool-item:hover { background-color: #f5f5f5; border-color: #ddd; transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05); }
+        .tool-item.dragging-tool { /* Style applied when dragging */
+            opacity: 0.6; transform: scale(0.95); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* List style items (e.g., in AI tab) */
+        .list-tool-item {
+            display: flex; align-items: center; gap: 10px; background-color: white; border: 1px solid #eee; border-radius: 6px;
+            padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s ease;
+        }
+        .list-tool-item i { font-size: 1rem; color: #D97A33; flex-shrink: 0; }
+        .list-tool-item span { font-size: 0.9rem; font-weight: 500; color: #444; }
+        .list-tool-item:hover { background-color: #fff8f2; border-color: rgba(217, 122, 51, 0.2); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03); }
+        /* Style for active AI tool */
+        .list-tool-item.active {
+            background-color: #FFF4E7; /* Light orange background */
+            border-color: #D97A33; /* Orange border */
+            box-shadow: 0 2px 5px rgba(217, 122, 51, 0.1);
+            font-weight: 600; /* Slightly bolder text */
+        }
+        .list-tool-item.active span { color: #c46621; } /* Darker orange text */
+        .list-tool-item.active i { color: #c46621; } /* Darker orange icon */
+
+        /* Search Input */
+        .search-box { display: flex; margin-bottom: 15px; position: relative; }
+        .search-box input { flex: 1; padding: 10px 15px 10px 35px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s ease; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
+        .search-box input:focus { outline: none; border-color: #D97A33; box-shadow: 0 0 0 3px rgba(217, 122, 51, 0.1); }
+
+        /* Element Category Tags */
+        .element-categories { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .element-category-tag { padding: 6px 12px; background-color: #f5f5f5; border-radius: 20px; font-size: 0.8rem; color: #666; cursor: pointer; transition: all 0.2s ease; }
+        .element-category-tag.active { background-color: #D97A33; color: white; }
+        .element-category-tag:hover:not(.active) { background-color: #eee; color: #333; }
+
+        /* Code View Styles */
+        #generated-code-container {
+            flex: 1; /* Allow container to grow */
+            overflow: hidden; /* Hide overflow */
+            display: flex; flex-direction: column; border: 1px solid #eee;
+            border-radius: 6px; background-color: #2d2d2d; /* Dark background for code */
+            margin-bottom: 15px; min-height: 100px; /* Ensure it has some height */
+        }
+        #generated-code-display {
+            flex: 1; /* Allow pre tag to grow */
+            overflow: auto; /* Enable scrolling for long code */
+            padding: 15px; font-family: 'Courier New', monospace; font-size: 0.85rem;
+            color: #f0f0f0; white-space: pre; /* Preserve whitespace and line breaks */
+            margin: 0; line-height: 1.4;
+        }
+        #generated-code-display code { display: block; } /* Ensure code block takes full width */
+        #copy-code-btn { margin-top: auto; flex-shrink: 0; } /* Push copy button to bottom */
+
+        /* AI Tab Textarea */
+        #ai-prompt-textarea {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; resize: vertical; font-size: 0.9rem;
+        }
+        #ai-prompt-textarea:focus { outline: none; border-color: #D97A33; box-shadow: 0 0 0 3px rgba(217, 122, 51, 0.1); }
+
+        /* --- Canvas Area --- */
+        .canvas-container {
+            flex: 1; /* Take remaining horizontal space */
+            overflow: hidden; /* Prevent its own scrollbars, wrapper handles scrolling */
+            display: flex;
+            flex-direction: column; /* Stack wrapper and resizer vertically */
+            background-color: #f0f2f5; /* Background around the canvas */
+            position: relative; /* For absolute positioning of toolbar */
+            min-width: 300px; /* Ensure canvas area doesn't collapse */
+        }
+        .canvas-toolbar {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex; padding: 5px; z-index: 10; /* Above canvas content */
+        }
+        .canvas-toolbar .btn-icon { margin: 0 2px; border: none; color: #666; }
+        .canvas-toolbar .device-btn.active { background-color: #f0f0f0; color: #D97A33; }
+        /* Wrapper for the actual canvas, handles scrolling */
+        .builder-canvas-wrapper {
+            flex: 1; /* Allow wrapper to grow vertically */
+            overflow: auto; /* Enable scrolling for canvas content */
+            padding: 30px; /* Space around the canvas */
+            display: flex; justify-content: center; align-items: flex-start; /* Center canvas */
+            width: 100%; /* Ensure wrapper takes full width */
+        }
+        /* The actual build area */
+        .builder-canvas {
+            background-color: white; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); margin: 0 auto; /* Center horizontally */
+            height: 800px; /* Example starting height, controlled by JS */
+            min-height: 200px; /* Prevent making it too small */
+            width: 100%; max-width: 1200px; /* Max width of the design */
+            border: 1px solid #ddd;
+            transition: max-width 0.3s ease;
+            padding: 0;
+            position: relative; /* Crucial for absolute positioning of elements AND GUIDELINES */
+            overflow: hidden; /* Prevent elements inside from causing overflow */
+        }
+
+        /* Alignment Guide Lines */
+        .guide-line {
+            position: absolute;
+            background-color: rgba(0, 123, 255, 0.5); /* Semi-transparent blue */
+            display: none; /* Hidden by default */
+            z-index: 1; /* Below elements being dragged */
+            pointer-events: none; /* Don't interfere with mouse */
+        }
+        #guide-line-h { /* Horizontal center line */
+            width: 100%; height: 1px; top: 50%; left: 0; transform: translateY(-50%);
+        }
+        #guide-line-v { /* Vertical center line */
+            width: 1px; height: 100%; left: 50%; top: 0; transform: translateX(-50%);
+        }
+        .builder-canvas.guides-visible .guide-line { display: block; }
+
+        /* Device preview styles */
+        .canvas-device-mobile { max-width: 400px; height: 700px; border-radius: 20px; border: 8px solid #333; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+        .canvas-device-tablet { max-width: 768px; height: 800px; border-radius: 10px; border: 6px solid #555; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
+
+        /* Canvas Elements */
+        .builder-canvas.drag-over { border: 2px dashed #D97A33; background-color: #fff8f2; }
+        .canvas-element {
+            position: absolute; /* Key for freeform placement */
+            border: 1px solid transparent; /* Invisible border initially */
+            cursor: default; /* Default cursor for the element */
+            min-height: 20px; /* Prevent elements becoming too small */
+            min-width: 20px;
+            transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            user-select: none; /* Prevent text selection during drag */
+            background-color: rgba(255, 255, 255, 0.8); /* Slight background to ensure visibility */
+            overflow: hidden; /* Prevent content overflow issues */
+            z-index: 2; /* Ensure elements are above guidelines */
+            max-width: 100%;
+        }
+        .canvas-element:hover { border: 1px dashed #aaa; }
+        .canvas-element.active {
+             border: 1px solid #D97A33; /* Solid border when selected */
+             box-shadow: 0 0 0 2px rgba(217, 122, 51, 0.2); /* Outer glow when selected */
+             z-index: 10; /* Bring selected element slightly forward */
+        }
+        .canvas-element.dragging { /* Style while actively being dragged */
+            opacity: 0.7;
+            z-index: 1000; /* Ensure dragged element is on top */
+        }
+
+        /* --- Centering Classes --- */
+        .canvas-element.centered-h {
+            left: 50% !important; /* Force left to 50% */
+            transform: translateX(-50%); /* Center horizontally */
+        }
+        .canvas-element.centered-v {
+             top: 50% !important;
+             transform: translateY(-50%); /* Center vertically */
+        }
+        .canvas-element.centered-hv {
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%); /* Center both ways */
+        }
+
+        /* --- Responsive Scaling --- */
+        .builder-canvas.canvas-device-mobile .canvas-element,
+        .builder-canvas.canvas-device-tablet .canvas-element {
+            /* max-width is already 100% */
+        }
+
+        /* --- Image Aspect Ratio --- */
+        .canvas-element .element-image {
+            display: block; width: 100%; height: auto; max-width: 100%; object-fit: cover;
+        }
+
+        /* --- Button Resizing --- */
+        /* Make button fill its canvas-element container */
+        .canvas-element > .element-button,
+        .canvas-element > .element-wallet-button { /* Added wallet button here */
+            width: 100%;
+            height: 100%;
+            display: flex; /* Override inline-block and allow centering */
+            align-items: center; /* Center text vertically */
+            justify-content: center; /* Center text horizontally */
+            padding: 5px; /* Add some padding inside the button */
+            box-sizing: border-box; /* Include padding in 100% width/height */
+            text-align: center; /* Ensure text centers */
+            /* Remove fixed padding that might conflict */
+            /* padding: 10px 20px; */ /* Overridden by padding: 5px above */
+        }
+
+
+        /* Element Controls */
+        .canvas-element .element-controls {
+            display: none; /* Hidden by default */
+            position: absolute;
+            /* REVERTED: Position controls inside top-right corner */
+            top: 2px;
+            right: 2px;
+            background-color: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 15; /* Above the element border/glow */
+            padding: 2px;
+        }
+        .canvas-element.active .element-controls { display: flex; } /* Show controls only when element is active */
+        .canvas-element .element-controls button { border: none; background: none; cursor: pointer; font-size: 0.8rem; padding: 3px 5px; color: #666; line-height: 1; }
+        .canvas-element .element-controls button:hover { color: #D97A33; }
+        .canvas-element .element-controls .drag-handle { cursor: move; }
+
+        /* Resize Handle */
+        .resize-handle {
+            position: absolute; width: 10px; height: 10px;
+            background-color: #D97A33; border: 1px solid white; border-radius: 2px;
+            z-index: 20; display: none;
+        }
+        .canvas-element.active .resize-handle { display: block; }
+        .resize-handle.br { bottom: -5px; right: -5px; cursor: nwse-resize; }
+
+        /* Canvas Placeholder Text */
+        .canvas-placeholder {
+             color: #999; text-align: center; padding: 40px 20px; border: 2px dashed #ddd; margin: 20px; font-weight: 500;
+             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%;
+             pointer-events: none; z-index: 0;
+        }
+
+        /* --- Canvas Height Resizer --- */
+        #canvas-resizer-y {
+            height: 8px; background-color: #e0e0e0; cursor: row-resize;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; width: 100%; transition: background-color 0.2s ease; z-index: 5;
+        }
+        #canvas-resizer-y:hover { background-color: #ccc; }
+        #canvas-resizer-y i { color: #666; font-size: 0.8rem; pointer-events: none; transform: rotate(90deg); }
+        body.resizing-canvas-h { cursor: row-resize !important; user-select: none; }
+
+        /* --- Properties Panel --- */
+        .properties-panel {
+            width: 300px; min-width: 250px; max-width: 450px; background-color: white; border-left: 1px solid #eee;
+            overflow-y: auto; transition: transform 0.3s ease, width 0.3s ease, border-left 0.3s ease; z-index: 50;
+            flex-shrink: 0; display: flex; flex-direction: column;
+        }
+        .properties-panel.collapsed {
+             width: 0; min-width: 0; transform: translateX(100%); border-left: none; overflow: hidden; padding: 0;
+        }
+        .properties-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .properties-header h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #333; }
+        .properties-header .btn-icon { border: none; }
+        .properties-content { padding: 15px; flex: 1; overflow-y: auto; }
+        .property-group { margin-bottom: 20px; }
+        .property-group-title { font-size: 0.9rem; font-weight: 600; color: #555; margin-bottom: 12px; padding-bottom: 5px; border-bottom: 1px solid #f0f0f0; }
+        .property-row { margin-bottom: 12px; position: relative; }
+        .property-row label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #666; }
+        .property-row input, .property-row select, .property-row textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; transition: all 0.2s ease; box-sizing: border-box; }
+        .property-row input:focus, .property-row select:focus, .property-row textarea:focus { outline: none; border-color: #D97A33; box-shadow: 0 0 0 3px rgba(217, 122, 51, 0.1); }
+
+        /* Color Picker Row */
+        .color-row { display: flex; align-items: center; gap: 10px; }
+        .color-preview { width: 25px; height: 25px; border-radius: 4px; border: 1px solid #ddd; overflow: hidden; cursor: pointer; flex-shrink: 0; }
+        .color-input { flex: 1; }
+
+        /* Color Palette Popup */
+        .color-palette-popup {
+            position: absolute; top: 100%; left: 0; background-color: white; border: 1px solid #ddd; border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 10px; padding-top: 25px;
+            z-index: 110; width: 200px; display: none;
+            grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 5px;
+        }
+        .color-palette-popup.visible { display: grid; }
+        .color-swatch { width: 25px; height: 25px; border-radius: 4px; cursor: pointer; border: 1px solid #eee; transition: transform 0.1s ease; }
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch[data-color="transparent"] {
+             background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%);
+             background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0px; background-color: white;
+        }
+        .close-palette-btn { position: absolute; top: 3px; right: 5px; background: none; border: none; font-size: 1.2rem; line-height: 1; color: #888; cursor: pointer; padding: 0 3px; }
+        .close-palette-btn:hover { color: #333; }
+
+        /* Button Group */
+        .button-group { display: flex; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; }
+        .button-group button { flex: 1; border: none; background-color: white; padding: 8px; cursor: pointer; font-size: 0.9rem; color: #666; border-right: 1px solid #ddd; }
+        .button-group button:last-child { border-right: none; }
+        .button-group button.active { background-color: #f0f0f0; color: #D97A33; font-weight: 500; }
+        .button-group button:hover:not(.active) { background-color: #f9f9f9; }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 992px) {
+            /* Adjust tab font size for smaller screens */
+            .sidebar-tab { font-size: 0.85rem; padding: 10px 8px; }
+            .sidebar-section-content:not(#ai-tab .sidebar-section-content):not(#code-tab .sidebar-section-content):not(#crypto-tab .sidebar-section-content) { grid-template-columns: 1fr; } /* Apply grid override exclusion */
+            .properties-panel {
+                position: fixed; right: 0; top: 57px; bottom: 0; height: calc(100vh - 57px);
+                transform: translateX(100%); box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+                width: 300px; min-width: 250px; max-width: 90vw;
+                transition: transform 0.3s ease; border-left: 1px solid #eee;
+            }
+            .properties-panel.collapsed { transform: translateX(100%); box-shadow: none; border-left: none; width: 0; min-width: 0; }
+            .properties-panel:not(.collapsed) { transform: translateX(0); }
+            .builder-canvas-wrapper { padding: 20px; }
+        }
+        @media (max-width: 768px) {
+            .top-bar-left .btn span, .top-bar-right .btn span { display: none; } /* Hide button text */
+            .top-bar-left .btn, .top-bar-right .btn { padding: 8px; } /* Adjust padding for icon-only buttons */
+            .logo span { display: none; } /* Hide logo text */
+            /* Hide text in tabs on very small screens */
+            .sidebar-tab span { display: none; }
+            .sidebar-tab i { margin-right: 0; }
+            .sidebar-tab { padding: 10px 5px; }
+            .top-bar-right { gap: 8px; } /* Reduce gap between top-right buttons */
+        }
+
+        /* --- Default Element Styles (Used in Builder & Preview) --- */
+        .element-heading { font-weight: 700; color: #333; margin: 0; padding: 5px; }
+        .element-paragraph { color: #555; line-height: 1.5; margin: 0; padding: 5px; }
+        .element-button, .preview-button-link { background-color: #D97A33; color: white !important; border: none; /* padding: 10px 20px; */ border-radius: 5px; font-weight: 500; cursor: pointer; /* display: inline-block; */ text-decoration: none; transition: background-color 0.2s ease; }
+        .element-button:hover, .preview-button-link:hover { background-color: #c46621; }
+        .element-image { max-width: 100%; height: auto; display: block; width: 100%; }
+        .element-spacer { height: 30px; background: repeating-linear-gradient( 45deg, #f5f5f5, #f5f5f5 5px, #eeeeee 5px, #eeeeee 10px ); opacity: 0.5; width: 100%; }
+        .element-divider hr { border: none; border-top: 1px solid #ddd; margin: 15px 0; }
+        .element-columns { display: flex; gap: 20px; width: 100%; }
+        .element-columns > div { flex: 1; min-height: 50px; padding: 10px; border-radius: 5px; position: relative; }
+        .element-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); background-color: white; width: 250px; }
+        .element-card-img { width: 100%; height: 150px; object-fit: cover; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; }
+        .element-card-img img { width: 100%; height: 100%; object-fit: cover; }
+        .element-card-content { padding: 15px; }
+        .element-card-content h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1rem; }
+        .element-card-content p { margin-bottom: 0; font-size: 0.9rem; color: #666; }
+        .element-form { border: 1px solid #eee; padding: 20px; border-radius: 8px; background-color: #f9f9f9; width: 300px; }
+        .element-form-row { margin-bottom: 15px; }
+        .element-form-row label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; color: #444; }
+        .element-form-row input, .element-form-row textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; box-sizing: border-box; }
+        .element-form-row input:focus, .element-form-row textarea:focus { outline: none; border-color: #D97A33; box-shadow: 0 0 0 2px rgba(217, 122, 51, 0.1); }
+        .element-video { background-color: #f0f0f0; border-radius: 8px; padding: 30px; text-align: center; color: #999; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 300px; height: 200px; }
+        .element-video p { margin-top: 10px; font-weight: 500; }
+        .element-icon { display: inline-flex; align-items: center; gap: 10px; color: #D97A33; font-size: 1rem; padding: 5px; }
+        .element-icon i { font-size: 1.5em; }
+        .element-icon span { font-weight: 500; }
+        /* --- ADDED: Crypto Element Styles --- */
+        .element-nft-display { border: 1px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; background-color: #f9f9f9; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; color: #777; }
+        .element-nft-display i { font-size: 2.5rem; margin-bottom: 10px; color: #aaa; }
+        /* Style for the main wallet connect button */
+        .element-wallet-button {
+            background-color: #6f42c1; /* Purple-ish */
+            color: white !important;
+            border: none;
+            border-radius: 5px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+            /* Sizing is handled by the .canvas-element > .element-wallet-button rule */
+            font-size: 0.9rem; /* Match other buttons */
+            line-height: 1.4; /* Ensure text fits */
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Show ... if text too long */
+        }
+        .element-wallet-button:hover { background-color: #5a37a0; }
+        .element-wallet-button.connected { background-color: #28a745; } /* Green when connected */
+        .element-wallet-button.connected:hover { background-color: #218838; }
+        .element-wallet-button:disabled { background-color: #adb5bd; cursor: not-allowed; opacity: 0.7; }
+
+        .element-token-balance { background-color: #f0f0f0; border-radius: 5px; padding: 10px 15px; font-size: 0.9rem; color: #555; font-weight: 500; text-align: center; }
+
+
+        /* --- Preview/Code Generation Styles --- */
+        .website-container .canvas-element { position: absolute !important; max-width: 100%; }
+        .website-container .canvas-element.centered-h { left: 50% !important; transform: translateX(-50%); }
+        .website-container .canvas-element.centered-v { top: 50% !important; transform: translateY(-50%); }
+        .website-container .canvas-element.centered-hv { left: 50% !important; top: 50% !important; transform: translate(-50%, -50%); }
+        .website-container .element-image { display: block; width: 100%; height: auto; max-width: 100%; }
+        /* Apply button fill styles in preview too */
+        .website-container .canvas-element > .element-button,
+        .website-container .canvas-element > .preview-button-link,
+        .website-container .canvas-element > .element-wallet-button { /* Added wallet button */
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            padding: 5px; box-sizing: border-box; text-align: center;
+        }
+
+
+        /* --- Animations --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease forwards; }
+        .slide-in-up { animation: slideInUp 0.3s ease forwards; }
+
+        /* --- ADDED: Wallet Modal Styles --- */
+        .wallet-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1001; /* Above everything else */
+            animation: fadeIn 0.2s ease forwards;
+        }
+        .wallet-modal-overlay.visible { display: flex; }
+        .wallet-modal-content {
+            background-color: white; padding: 30px; border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-align: center; min-width: 300px; max-width: 90%;
+            position: relative; /* For close button */
+            animation: slideInUp 0.3s ease forwards;
+        }
+        .wallet-modal-content h3 { margin-top: 0; margin-bottom: 20px; color: #333; }
+        .wallet-modal-options { display: flex; flex-direction: column; gap: 15px; }
+        .wallet-modal-options button {
+            padding: 12px 20px; font-size: 1rem; border-radius: 6px;
+            cursor: pointer; transition: background-color 0.2s ease;
+            border: 1px solid #ddd; background-color: #f8f9fa; color: #333;
+            font-weight: 500;
+        }
+        .wallet-modal-options button:hover { background-color: #eee; }
+        .wallet-modal-options button.metamask-btn { border-color: #F6851B; color: #F6851B; }
+        .wallet-modal-options button.metamask-btn:hover { background-color: #fff8f2; }
+        .wallet-modal-options button.phantom-btn { border-color: #5A4FF5; color: #5A4FF5; }
+        .wallet-modal-options button.phantom-btn:hover { background-color: #f4f3ff; }
+        .wallet-modal-close {
+            position: absolute; top: 10px; right: 10px;
+            background: none; border: none; font-size: 1.5rem;
+            color: #aaa; cursor: pointer; line-height: 1; padding: 5px;
+        }
+        .wallet-modal-close:hover { color: #333; }
+
+        /* --- ADDED: Status Message Styles --- */
+        #wallet-status-message {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #333; color: white; padding: 10px 20px;
+            border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1002; display: none; /* Hidden by default */
+            font-size: 0.9rem; animation: fadeIn 0.3s ease;
+        }
+        #wallet-status-message.error { background-color: #dc3545; }
+        #wallet-status-message.success { background-color: #28a745; }
+        #wallet-status-message.info { background-color: #17a2b8; } /* Added info style */
+
+    </style>
+</head>
+<body>
+    <div class="builder-container">
+        <header class="builder-top-bar">
+            <div class="top-bar-left">
+                <a href="#" class="logo"><i class="fas fa-cubes"></i><span>Website.io</span></a>
+                <button class="btn btn-secondary" id="undo-btn" title="Undo last action" disabled><i class="fas fa-undo"></i><span>Undo</span></button>
+            </div>
+            <div class="top-bar-right">
+                <span class="version-info"><i class="fas fa-save"></i> Versions: <strong id="saved-version-count">0</strong> / <strong id="max-version-count">3</strong></span>
+                <button class="btn btn-secondary" id="preview-btn" title="Preview website"><i class="fas fa-eye"></i><span>Preview</span></button>
+                <button class="btn btn-secondary" id="load-version-btn" title="Load a saved version"><i class="fas fa-folder-open"></i><span>Load Version</span></button>
+                <button class="btn btn-primary" id="save-btn" title="Save current design as a version"><i class="fas fa-save"></i><span>Save Version</span></button>
+                <button class="btn btn-primary" id="publish-btn" title="Publish website"><i class="fas fa-rocket"></i><span>Publish</span></button>
+            </div>
+        </header>
+
+        <main class="builder-main">
+            <aside class="builder-sidebar" id="builder-sidebar">
+                <div class="sidebar-tabs">
+                    <div class="sidebar-tab active" data-tab="elements"><i class="fas fa-th-large"></i><span>Elements</span></div>
+                    <div class="sidebar-tab" data-tab="code"><i class="fas fa-code"></i><span>Code</span></div>
+                    <div class="sidebar-tab" data-tab="ai"><i class="fas fa-magic"></i><span>AI Tools</span></div>
+                    <div class="sidebar-tab" data-tab="crypto"><i class="fas fa-coins"></i><span>Crypto</span></div>
+                </div>
+                <div class="sidebar-content">
+                    <div class="tab-content active" id="elements-tab">
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search elements..."></div>
+                        <div class="sidebar-section"> <div class="sidebar-section-title"><span>Filter by Category</span><i class="fas fa-chevron-down section-icon"></i></div>
+                            <div class="sidebar-section-content">
+                                <div class="element-categories">
+                                    <div class="element-category-tag active">All</div>
+                                    <div class="element-category-tag">Basic</div>
+                                    <div class="element-category-tag">Layout</div>
+                                    <div class="element-category-tag">Media</div>
+                                    <div class="element-category-tag">Forms</div>
+                                    <div class="element-category-tag">Components</div>
+                                    <div class="element-category-tag">Crypto</div> </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-section"><div class="sidebar-section-title"><span>Basic Elements</span><i class="fas fa-chevron-down section-icon"></i></div><div class="sidebar-section-content"><div class="tool-item" draggable="true" data-tool="heading"><i class="fas fa-heading"></i><span>Heading</span></div><div class="tool-item" draggable="true" data-tool="paragraph"><i class="fas fa-paragraph"></i><span>Paragraph</span></div><div class="tool-item" draggable="true" data-tool="button"><i class="fas fa-square"></i><span>Button</span></div><div class="tool-item" draggable="true" data-tool="image"><i class="fas fa-image"></i><span>Image</span></div></div></div>
+                        <div class="sidebar-section"><div class="sidebar-section-title"><span>Layout Elements</span><i class="fas fa-chevron-down section-icon"></i></div><div class="sidebar-section-content"><div class="tool-item" draggable="true" data-tool="columns"><i class="fas fa-columns"></i><span>Columns</span></div><div class="tool-item" draggable="true" data-tool="spacer"><i class="fas fa-arrows-alt-v"></i><span>Spacer</span></div><div class="tool-item" draggable="true" data-tool="divider"><i class="fas fa-minus"></i><span>Divider</span></div><div class="tool-item" draggable="true" data-tool="container"><i class="fas fa-box"></i><span>Container</span></div></div></div>
+                        <div class="sidebar-section"><div class="sidebar-section-title"><span>Components</span><i class="fas fa-chevron-down section-icon"></i></div><div class="sidebar-section-content"><div class="tool-item" draggable="true" data-tool="card"><i class="fas fa-id-card"></i><span>Card</span></div><div class="tool-item" draggable="true" data-tool="navbar"><i class="fas fa-bars"></i><span>Navigation</span></div><div class="tool-item" draggable="true" data-tool="footer"><i class="fas fa-shoe-prints"></i><span>Footer</span></div><div class="tool-item" draggable="true" data-tool="hero"><i class="fas fa-bolt"></i><span>Hero</span></div></div></div>
+                        <div class="sidebar-section"><div class="sidebar-section-title"><span>Media</span><i class="fas fa-chevron-down section-icon"></i></div><div class="sidebar-section-content"><div class="tool-item" draggable="true" data-tool="video"><i class="fas fa-video"></i><span>Video</span></div><div class="tool-item" draggable="true" data-tool="icon"><i class="fas fa-icons"></i><span>Icon</span></div></div></div>
+                        <div class="sidebar-section"><div class="sidebar-section-title"><span>Forms</span><i class="fas fa-chevron-down section-icon"></i></div><div class="sidebar-section-content"><div class="tool-item" draggable="true" data-tool="form"><i class="fab fa-wpforms"></i><span>Contact Form</span></div><div class="tool-item" draggable="true" data-tool="input"><i class="fas fa-keyboard"></i><span>Input</span></div><div class="tool-item" draggable="true" data-tool="textarea"><i class="fas fa-align-left"></i><span>Text Area</span></div><div class="tool-item" draggable="true" data-tool="checkbox"><i class="fas fa-check-square"></i><span>Checkbox</span></div></div></div>
+                         </div>
+                    <div class="tab-content" id="code-tab" style="display: none;">
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-title"><span>Generated Code</span></div>
+                            <div id="generated-code-container">
+                                <pre id="generated-code-display"><code></code></pre>
+                            </div>
+                            <button class="btn btn-secondary" id="copy-code-btn"><i class="fas fa-copy"></i> Copy Code</button>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="ai-tab" style="display: none;">
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-title"><span>AI Assistance</span></div>
+                            <div id="ai-tool-selector">
+                                <div class="list-tool-item" data-ai-tool="generate_content"><i class="fas fa-wand-magic-sparkles"></i><span>Generate Content</span></div>
+                                <div class="list-tool-item" data-ai-tool="design_suggestions"><i class="fas fa-palette"></i><span>Design Suggestions</span></div>
+                                <div class="list-tool-item" data-ai-tool="layout_improvement"><i class="fas fa-sliders"></i><span>Layout Improvement</span></div>
+                                <div class="list-tool-item" data-ai-tool="rewrite_text"><i class="fas fa-pen-fancy"></i><span>Rewrite Text</span></div>
+                                <div class="list-tool-item" data-ai-tool="image_suggestions"><i class="fas fa-image"></i><span>Image Suggestions</span></div>
+                            </div>
+                        </div>
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-title"><span>AI Content Generator</span></div>
+                            <textarea id="ai-prompt-textarea" placeholder="Describe what content you want to generate..." rows="4"></textarea>
+                            <button class="btn btn-primary" id="ai-generate-btn" style="width: 100%;"><i class="fas fa-magic"></i> Generate Content</button>
+                        </div>
+                        <div class="sidebar-section" id="ai-output-section" style="display: none;">
+                             <div class="sidebar-section-title"><span>AI Output</span></div>
+                             <div id="ai-output-display" style="background-color: #f9f9f9; border: 1px solid #eee; border-radius: 6px; padding: 10px; font-size: 0.9rem; min-height: 50px; white-space: pre-wrap; word-wrap: break-word;"></div>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="crypto-tab" style="display: none;">
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-title"><span>Web3 Elements</span></div>
+                            <div class="sidebar-section-content">
+                                <div class="tool-item" draggable="true" data-tool="nft-display" style="grid-column: span 2;"><i class="fas fa-image"></i><span>NFT Display</span></div>
+                                <div class="tool-item" draggable="true" data-tool="wallet-connect" style="grid-column: span 2;"><i class="fas fa-wallet"></i><span>Wallet Connect</span></div>
+                                <div class="tool-item" draggable="true" data-tool="token-balance" style="grid-column: span 2;"><i class="fas fa-coins"></i><span>Token Balance</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div id="sidebar-resizer" title="Drag to resize sidebar">
+                <i class="fas fa-arrows-alt-h"></i>
+            </div>
+
+            <div class="canvas-container" id="canvas-container">
+                <div class="canvas-toolbar">
+                    <button class="btn-icon device-btn active" data-device="desktop" title="Desktop View"><i class="fas fa-desktop"></i></button>
+                    <button class="btn-icon device-btn" data-device="tablet" title="Tablet View"><i class="fas fa-tablet-alt"></i></button>
+                    <button class="btn-icon device-btn" data-device="mobile" title="Mobile View"><i class="fas fa-mobile-alt"></i></button>
+                    <div style="width: 1px; background-color: #ddd; height: 20px; margin: auto 5px;"></div>
+                    <button class="btn-icon" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                    <button class="btn-icon" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                </div>
+                <div class="builder-canvas-wrapper">
+                    <div class="builder-canvas" id="canvas">
+                        <div class="guide-line" id="guide-line-v"></div>
+                        <div class="guide-line" id="guide-line-h"></div>
+                        <p class="canvas-placeholder">Drag elements from the sidebar to start building your website!</p>
+                        </div>
+                </div>
+                <div id="canvas-resizer-y" title="Drag to resize page height">
+                    <i class="fas fa-arrows-alt-h"></i> </div>
+            </div>
+
+            <div class="properties-panel collapsed" id="properties-panel">
+                <div class="properties-header">
+                    <h3>Element Properties</h3>
+                    <button class="btn-icon" id="close-properties" title="Close Properties"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="properties-content">
+                    <div class="property-group" id="text-properties" style="display: none;">
+                        <div class="property-group-title">Text Content</div>
+                        <div class="property-row"><label for="text-content">Content</label><textarea id="text-content" rows="3"></textarea></div>
+                    </div>
+                    <div class="property-group"> <div class="property-group-title">Appearance</div>
+                        <div class="property-row"><label for="font-family">Font</label><select id="font-family"><option value="Inter, sans-serif">Inter</option><option value="Arial, sans-serif">Arial</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Courier New', monospace">Courier New</option><option value="Georgia, serif">Georgia</option></select></div>
+                        <div class="property-row"><label for="font-size">Font Size</label><select id="font-size"><option value="12px">12px</option><option value="14px">14px</option><option value="16px">16px</option><option value="18px">18px</option><option value="20px">20px</option><option value="24px">24px</option><option value="32px">32px</option><option value="48px">48px</option></select></div>
+                        <div class="property-row"><label>Text Alignment</label><div class="button-group" id="text-align-group"><button class="text-align" data-align="left" title="Align Left"><i class="fas fa-align-left"></i></button><button class="text-align" data-align="center" title="Align Center"><i class="fas fa-align-center"></i></button><button class="text-align" data-align="right" title="Align Right"><i class="fas fa-align-right"></i></button><button class="text-align" data-align="justify" title="Align Justify"><i class="fas fa-align-justify"></i></button></div></div>
+                        <div class="property-row">
+                            <label for="text-color">Text Color</label>
+                            <div class="color-row">
+                                <div class="color-preview" id="text-color-preview" data-palette-target="text-color-palette" style="background-color: #333333;"></div>
+                                <input type="text" id="text-color" class="color-input" value="#333333">
+                            </div>
+                            <div class="color-palette-popup" id="text-color-palette"></div>
+                        </div>
+                        <div class="property-row">
+                            <label for="background-color">Background Color</label>
+                            <div class="color-row">
+                                <div class="color-preview" id="bg-color-preview" data-palette-target="bg-color-palette" style="background-color: transparent;"></div>
+                                <input type="text" id="background-color" class="color-input" value="transparent">
+                            </div>
+                             <div class="color-palette-popup" id="bg-color-palette"></div>
+                        </div>
+                    </div>
+                    <div class="property-group"> <div class="property-group-title">Layout & Position</div>
+                        <div class="property-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div><label for="pos-left">Left</label><input type="text" id="pos-left" placeholder="e.g., 50px or Center"></div>
+                            <div><label for="pos-top">Top</label><input type="text" id="pos-top" placeholder="e.g., 50px or Center"></div>
+                        </div>
+                        <div class="property-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                             <div><label for="width">Width</label><input type="text" id="width" placeholder="Auto (e.g., 300px or 50%)"></div>
+                             <div><label for="height">Height</label><input type="text" id="height" placeholder="Auto (e.g., 50px or 10vh)"></div>
+                        </div>
+                    </div>
+                    <div class="property-group" id="image-properties" style="display: none;">
+                        <div class="property-group-title">Image Settings</div>
+                        <div class="property-row"><label for="image-src">Image URL</label><input type="text" id="image-src" value="https://placehold.co/600x400"></div>
+                        <div class="property-row"><label for="image-alt">Alt Text</label><input type="text" id="image-alt" placeholder="Image description"></div>
+                        <div class="property-row">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="image-aspect-lock" checked>
+                                <span>Lock Aspect Ratio</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="property-group" id="button-properties" style="display: none;">
+                        <div class="property-group-title">Button Settings</div>
+                        <div class="property-row"><label for="button-text">Button Text</label><input type="text" id="button-text"></div>
+                        <div class="property-row"><label for="button-link">Link URL</label><input type="text" id="button-link" placeholder="https://example.com"></div>
+                        <div class="property-row"><label>Open in</label><div class="button-group" id="target-option-group"><button class="target-option active" data-target="_self">Same Tab</button><button class="target-option" data-target="_blank">New Tab</button></div></div>
+                    </div>
+                    <div class="property-group" id="nft-properties" style="display: none;">
+                        <div class="property-group-title">NFT Display Settings</div>
+                        <div class="property-row"><label for="nft-contract">Contract Address</label><input type="text" id="nft-contract" placeholder="e.g., 0x..."></div>
+                        <div class="property-row"><label for="nft-tokenid">Token ID</label><input type="text" id="nft-tokenid" placeholder="e.g., 123"></div>
+                    </div>
+                     <div class="property-group" id="token-properties" style="display: none;">
+                        <div class="property-group-title">Token Balance Settings</div>
+                        <div class="property-row"><label for="token-symbol">Token Symbol</label><input type="text" id="token-symbol" placeholder="e.g., SOL, ETH"></div>
+                    </div>
+                    </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="wallet-modal" class="wallet-modal-overlay">
+        <div class="wallet-modal-content">
+            <button class="wallet-modal-close" onclick="hideWalletModal()">&times;</button>
+            <h3>Connect Wallet</h3>
+            <div class="wallet-modal-options">
+                <button id="connect-metamask-btn" class="metamask-btn">
+                    <i class="fas fa-external-link-alt"></i> Connect MetaMask
+                </button>
+                <button id="connect-phantom-btn" class="phantom-btn">
+                    <i class="fas fa-ghost"></i> Connect Phantom
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="wallet-status-message">Status Message Here</div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DOM Element References ---
+            const canvas = document.getElementById('canvas');
+            const sidebar = document.getElementById('builder-sidebar');
+            const sidebarResizer = document.getElementById('sidebar-resizer');
+            const canvasContainer = document.getElementById('canvas-container');
+            const canvasResizerY = document.getElementById('canvas-resizer-y');
+            const toolItems = document.querySelectorAll('.tool-item'); // Includes crypto tools now
+            const propertiesPanel = document.getElementById('properties-panel');
+            const closePropertiesBtn = document.getElementById('close-properties');
+            const sidebarTabs = document.querySelectorAll('.sidebar-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const elementsTabContent = document.getElementById('elements-tab');
+            const deviceButtons = document.querySelectorAll('.device-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const previewBtn = document.getElementById('preview-btn');
+            const undoBtn = document.getElementById('undo-btn');
+            const publishBtn = document.getElementById('publish-btn');
+            const loadVersionBtn = document.getElementById('load-version-btn'); // ADDED: Load button ref
+            const savedVersionCountSpan = document.getElementById('saved-version-count'); // ADDED: Version count span
+            const maxVersionCountSpan = document.getElementById('max-version-count'); // ADDED: Max version span
+            const textColorPreview = document.getElementById('text-color-preview');
+            const bgColorPreview = document.getElementById('bg-color-preview');
+            const textColorPalette = document.getElementById('text-color-palette');
+            const bgColorPalette = document.getElementById('bg-color-palette');
+            const textColorInput = document.getElementById('text-color');
+            const bgColorInput = document.getElementById('background-color');
+            const elementCategoryTags = document.querySelectorAll('.element-category-tag');
+            const generatedCodeDisplay = document.getElementById('generated-code-display');
+            const codeTab = document.getElementById('code-tab');
+            const copyCodeBtn = document.getElementById('copy-code-btn');
+            const guideLineH = document.getElementById('guide-line-h');
+            const guideLineV = document.getElementById('guide-line-v');
+            // --- AI Tab Elements ---
+            const aiTabContent = document.getElementById('ai-tab');
+            const aiToolSelector = document.getElementById('ai-tool-selector');
+            const aiPromptTextarea = document.getElementById('ai-prompt-textarea');
+            const aiGenerateBtn = document.getElementById('ai-generate-btn');
+            const aiOutputSection = document.getElementById('ai-output-section');
+            const aiOutputDisplay = document.getElementById('ai-output-display');
+            // --- Crypto Tab Elements ---
+            const cryptoTabContent = document.getElementById('crypto-tab'); // Reference to the new tab content
+            // --- Wallet Modal Elements ---
+            const walletModal = document.getElementById('wallet-modal');
+            const connectMetaMaskBtn = document.getElementById('connect-metamask-btn');
+            const connectPhantomBtn = document.getElementById('connect-phantom-btn');
+            const walletStatusMessage = document.getElementById('wallet-status-message');
+
+            // --- State Variables ---
+            let draggedTool = null;
+            let selectedElement = null;
+            let history = [];
+            let currentVersionsSaved = 0; // This will be updated on load
+            const MAX_VERSIONS = 3;
+            let activePalette = null;
+            let currentActiveTab = 'elements';
+            let isResizingSidebar = false;
+            let isResizingCanvasHeight = false;
+            let isDraggingElement = false;
+            let isResizingElement = false;
+            let dragOffsetX, dragOffsetY;
+            let resizeStartX, resizeStartY;
+            let initialWidth, initialHeight;
+            let draggedCanvasElement = null;
+            let imageAspectRatio = null;
+            // --- AI State ---
+            let selectedAiTool = null;
+            // --- Wallet State ---
+            let currentWalletButton = null; // Reference to the button that opened the modal
+            let connectedWalletType = null; // 'metamask' or 'phantom'
+            let connectedAccount = null; // The connected wallet address
+
+            // --- Configuration ---
+            const snapThreshold = 8;
+            const defaultImageWidth = 200;
+            const localStorageVersionPrefix = 'website_design_version_'; // Prefix for local storage keys
+
+            // --- Predefined Color Palette ---
+            const colorPalette = [
+                '#ffffff', '#000000', '#D97A33', '#c46621', '#333333', '#555555', '#f8f9fa', '#f0f2f5',
+                '#dc3545', '#fd7e14', '#ffc107', '#28a745', '#20c997', '#17a2b8', '#007bff', '#6f42c1',
+                'transparent'
+            ];
+
+            // --- Default Element CSS (for preview/code generation) ---
+            // UPDATED: Added styles for crypto elements and wallet button states
+            const defaultElementStyles = `
                 .element-heading { font-weight: 700; color: #333; margin: 0; padding: 5px; }
                 .element-paragraph { color: #555; line-height: 1.5; margin: 0; padding: 5px; }
                 .element-button, .preview-button-link { background-color: #D97A33; color: white !important; border: none; border-radius: 5px; font-weight: 500; cursor: pointer; text-decoration: none; transition: background-color 0.2s ease; }
@@ -71,23 +897,1360 @@
                     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
                     padding: 5px; box-sizing: border-box; text-align: center;
                 }
-            
+            `;
+
+            // --- Core Functions ---
+
+            /** Checks if the Code tab is currently active. */
+            function isCodeTabActive() {
+                return currentActiveTab === 'code';
+            }
+
+            /** Basic HTML formatting for the code view. */
+            function formatHtml(htmlString) {
+                // (Formatting logic remains the same)
+                let indentLevel = 0; const indentSize = 2; let formattedHtml = '';
+                const lines = htmlString.replace(/></g, '>\n<').split('\n');
+                lines.forEach(line => {
+                    const trimmedLine = line.trim(); if (!trimmedLine) return;
+                    if (trimmedLine.startsWith('</') && indentLevel > 0) { indentLevel--; }
+                    formattedHtml += ' '.repeat(indentLevel * indentSize) + trimmedLine + '\n';
+                    if (trimmedLine.startsWith('<') && !trimmedLine.startsWith('</') && !trimmedLine.endsWith('/>') &&
+                        !['<hr', '<img', '<input', '<br'].some(tag => trimmedLine.startsWith(tag)) &&
+                        trimmedLine.includes('>') && !trimmedLine.includes('</')) {
+                        const tagContentMatch = trimmedLine.match(/>(.*?)<\//);
+                        const isSimpleOpeningTag = /^<[a-zA-Z]+[^>]*>$/.test(trimmedLine);
+                        if (isSimpleOpeningTag || !tagContentMatch || tagContentMatch[1].trim() === '') { indentLevel++; }
+                    }
+                }); return formattedHtml.trim().replace(/\n\n+/g, '\n');
+            }
+
+            /** Updates the code view panel with the current canvas HTML. */
+            function updateCodeView() {
+                if (!isCodeTabActive() || !generatedCodeDisplay || !canvas) return;
+                const previewCanvas = canvas.cloneNode(true);
+                // Remove builder UI elements AND guide lines from the clone
+                previewCanvas.querySelectorAll('.element-controls, .canvas-placeholder, .resize-handle, .guide-line').forEach(el => el.remove());
+                previewCanvas.querySelectorAll('.canvas-element.active').forEach(el => el.classList.remove('active'));
+                previewCanvas.querySelectorAll('.canvas-element').forEach(el => {
+                    el.removeAttribute('draggable');
+                    el.style.cursor = 'default';
+                    el.style.border = '';
+                    el.style.boxShadow = '';
+                    el.classList.remove('dragging');
+                    // Remove data attributes used by builder
+                    delete el.dataset.aspectRatio;
+                    delete el.dataset.toolType; // Remove tool type identifier
+                    delete el.dataset.connectedWallet; // Remove wallet state
+                    delete el.dataset.connectedAccount;
+                });
+                previewCanvas.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
+                // Convert standard buttons to links
+                previewCanvas.querySelectorAll('button.element-button[data-href]').forEach(btn => {
+                    const link = btn.getAttribute('data-href'); const target = btn.getAttribute('data-target') || '_self';
+                    if (link && link !== '#') {
+                        const anchor = document.createElement('a'); anchor.href = link; anchor.target = target; anchor.textContent = btn.textContent;
+                        anchor.className = Array.from(btn.classList).filter(cls => cls.startsWith('element-')).join(' '); anchor.classList.add('preview-button-link');
+                        const stylesToCopy = ['color', 'background-color', 'font-family', 'font-size', 'font-weight', 'text-align', 'padding', 'border-radius', 'margin', 'display', 'width', 'height'];
+                        stylesToCopy.forEach(styleProp => { if (btn.style[styleProp]) anchor.style[styleProp] = btn.style[styleProp]; });
+                        btn.parentNode.replaceChild(anchor, btn);
+                    } else { btn.removeAttribute('data-href'); btn.removeAttribute('data-target'); }
+                });
+                // Keep crypto buttons as buttons but remove onclick/data attributes
+                previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
+                    btn.removeAttribute('onclick');
+                    btn.removeAttribute('data-connected-wallet');
+                    btn.removeAttribute('data-connected-account');
+                    // You might want to add placeholder text or disable them in the static code view
+                    // btn.textContent = 'Connect Wallet (Preview)';
+                    // btn.disabled = true;
+                });
+                previewCanvas.querySelectorAll('.element-columns > div').forEach(col => { col.style.border = ''; });
+                previewCanvas.querySelectorAll('.element-spacer').forEach(sp => { sp.style.background = ''; sp.style.opacity = ''; });
+                let generatedBodyHtml = formatHtml(previewCanvas.innerHTML);
+                const canvasHeight = canvas.style.height || '800px';
+                // Construct the full HTML, ensuring default styles are included
+                const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Generated Website</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        .website-container {
+            position: relative; /* Needed for absolute positioning of elements */
+            max-width: 1200px; /* Match canvas max-width */
+            height: ${canvasHeight}; /* Use the actual canvas height */
+            margin: 20px auto; /* Center the container */
+            padding: 20px; /* Add some padding */
+            border: 1px solid #eee; /* Optional border */
+            overflow: hidden; /* Prevent overflow */
+        }
+        ${defaultElementStyles}
         /* Ensure elements remain absolutely positioned in the final output */
         /* .canvas-element styles are included in defaultElementStyles */
     </style>
 </head>
 <body>
     <div class="website-container">
-<div class="canvas-element" style="width: 180px; height: 40px; position: absolute; top: 0px; left: 253px; cursor: default;">
-  <button class="element-wallet-button">Connect Wallet</button>
-</div>
+${generatedBodyHtml}
     </div>
     </body>
+</html>`;
+                const codeBlock = generatedCodeDisplay.querySelector('code');
+                if (codeBlock) { codeBlock.textContent = fullHtml; } else { generatedCodeDisplay.textContent = fullHtml; }
+            }
+
+            /** Saves the current canvas state (HTML only) to the history stack. */
+            function saveToHistory() {
+                // (Save logic remains the same)
+                if (canvas) {
+                    const currentState = canvas.innerHTML;
+                    if (history.length === 0 || history[history.length - 1] !== currentState) {
+                        history.push(currentState);
+                        if (history.length > 20) { history.shift(); } // Limit history size
+                        if (undoBtn) undoBtn.disabled = false;
+                        if (isCodeTabActive()) { updateCodeView(); }
+                    }
+                }
+            }
+
+            /** Reverts the canvas to the previous state in the history. */
+            function undo() {
+                // (Undo logic remains the same)
+                if (history.length > 1) {
+                    history.pop();
+                    const previousStateHtml = history[history.length - 1];
+                    if (canvas) {
+                        canvas.innerHTML = previousStateHtml;
+                        setupCanvasElements(); // Re-attach listeners
+                        setSelectedElement(null); // Deselect after undo
+                        if (isCodeTabActive()) { updateCodeView(); }
+                        checkCanvasPlaceholder(); // Check placeholder after loading
+                    }
+                    if (undoBtn) undoBtn.disabled = history.length <= 1;
+                } else {
+                     if (undoBtn) undoBtn.disabled = true;
+                }
+            }
+
+            /** Initializes the builder interface and event listeners. */
+            function initBuilder() {
+                updateSavedVersionCount(); // ADDED: Update count on initial load
+                populateColorPalettes();
+                addPaletteEventListeners();
+                setupCanvasElements();
+                addToolItemListeners(); // Will now include crypto tools
+                addCanvasListeners();
+                addPropertiesPanelListeners();
+                addTopBarButtonListeners(); // Includes save, preview, undo, publish, AND load
+                addSidebarTabListeners();
+                addSidebarSectionToggleListeners();
+                addDeviceButtonListeners();
+                addElementCategoryListeners();
+                addCopyCodeButtonListener();
+                addSidebarResizerListeners();
+                addCanvasResizerListeners();
+                addAiToolListeners();
+                addWalletModalListeners(); // Add listeners for the new modal
+                document.addEventListener('mousemove', handleDocumentMouseMove); document.addEventListener('mouseup', handleDocumentMouseUp);
+                setTimeout(() => { saveToHistory(); if (undoBtn) undoBtn.disabled = true; updateCodeView(); }, 0); // Save initial state
+                if (window.innerWidth < 992 && propertiesPanel) { propertiesPanel.classList.add('collapsed'); }
+                document.addEventListener('click', handleGlobalClickForPalette);
+            }
+
+            /** Creates a new canvas element based on the tool type. */
+            function createElementFromTool(type) {
+                let elementWrapper = document.createElement('div');
+                elementWrapper.className = 'canvas-element';
+                elementWrapper.dataset.toolType = type; // Store tool type for properties panel
+                let contentHtml = ''; let initialWidth = 'auto'; let initialHeight = 'auto';
+                let isImageElement = false;
+
+                switch (type) {
+                    // --- Basic Elements ---
+                    case 'heading': contentHtml = '<h2 class="element-heading" contenteditable="true">Heading</h2>'; initialWidth = '200px'; break;
+                    case 'paragraph': contentHtml = '<p class="element-paragraph" contenteditable="true">Paragraph text.</p>'; initialWidth = '300px'; break;
+                    case 'button': contentHtml = '<button class="element-button" contenteditable="true" data-href="#" data-target="_self">Button</button>'; break;
+                    case 'image':
+                        isImageElement = true;
+                        contentHtml = `<img class="element-image" src="https://placehold.co/${defaultImageWidth}x${Math.round(defaultImageWidth * 0.75)}/FFF4E7/D97A33?text=Loading..." alt="Placeholder" data-natural-width="0" data-natural-height="0">`;
+                        initialWidth = `${defaultImageWidth}px`; initialHeight = 'auto';
+                        break;
+                    // --- Layout Elements ---
+                    case 'spacer': contentHtml = '<div class="element-spacer"></div>'; initialWidth = '100%'; initialHeight = '30px'; break;
+                    case 'divider': contentHtml = '<div class="element-divider"><hr></div>'; initialWidth = '100%'; initialHeight = '16px'; break;
+                    case 'columns': contentHtml = `<div class="element-columns"><div><p class="element-paragraph" contenteditable="true">Col 1</p></div><div><p class="element-paragraph" contenteditable="true">Col 2</p></div></div>`; initialWidth = '400px'; initialHeight = '100px'; break;
+                    // --- Components ---
+                    case 'card': contentHtml = `<div class="element-card"><div class="element-card-img"><i class="fas fa-image fa-2x"></i></div><div class="element-card-content"><h3 class="element-heading" contenteditable="true">Title</h3><p class="element-paragraph" contenteditable="true">Desc.</p></div></div>`; initialWidth = '250px'; break;
+                    case 'form': contentHtml = `<div class="element-form"><div class="element-form-row"><label contenteditable="true">Name</label><input type="text"></div><div class="element-form-row"><label contenteditable="true">Email</label><input type="email"></div><div class="element-form-row"><button class="element-button" contenteditable="true">Submit</button></div></div>`; initialWidth = '300px'; break;
+                    // --- Media ---
+                    case 'video': contentHtml = `<div class="element-video"><i class="fas fa-video fa-3x"></i><p contenteditable="true">Video</p></div>`; initialWidth = '300px'; initialHeight = '200px'; break;
+                    case 'icon': contentHtml = `<div class="element-icon"><i class="fas fa-star"></i><span contenteditable="true">Label</span></div>`; break;
+                    // --- ADDED: Crypto Elements ---
+                    case 'nft-display':
+                        contentHtml = `<div class="element-nft-display"><i class="fas fa-image"></i><span contenteditable="false">NFT Placeholder</span></div>`;
+                        initialWidth = '200px'; initialHeight = '200px';
+                        break;
+                    case 'wallet-connect':
+                        // MODIFIED: Create the button that triggers the modal
+                        contentHtml = `<button class="element-wallet-button" onclick="handleWalletButtonClick(this)">Connect Wallet</button>`;
+                        // Button size will be determined by content unless width/height set
+                        initialWidth = '180px'; // Give it a default width
+                        initialHeight = '40px'; // Give it a default height
+                        break;
+                    case 'token-balance':
+                        contentHtml = `<div class="element-token-balance"><span contenteditable="false">Token: SOL</span> <span contenteditable="false">Balance: --</span></div>`;
+                        initialWidth = '200px';
+                        break;
+                    // --- Default ---
+                    default: contentHtml = `<div contenteditable="true">Unknown: ${type}</div>`; initialWidth = '100px'; initialHeight = '50px'; break;
+                }
+                elementWrapper.innerHTML = contentHtml;
+                elementWrapper.style.width = initialWidth;
+                elementWrapper.style.height = initialHeight;
+
+                // Add controls (excluding for wallet button for now, simplicity)
+                 if (type !== 'wallet-connect') {
+                    const controls = document.createElement('div');
+                    controls.className = 'element-controls';
+                    controls.innerHTML = `
+                        <button class="drag-handle" title="Move Element"><i class="fas fa-arrows-alt"></i></button>
+                        <button class="edit-btn" title="Edit/Toggle Properties"><i class="fas fa-pen"></i></button>
+                        <button class="delete-btn" title="Delete Element"><i class="fas fa-trash"></i></button>
+                    `;
+                    elementWrapper.appendChild(controls);
+
+                    // Add resize handle (excluding for wallet button)
+                    const resizeHandleBR = document.createElement('div');
+                    resizeHandleBR.className = 'resize-handle br';
+                    elementWrapper.appendChild(resizeHandleBR);
+                 } else {
+                     // For wallet button, add simpler controls (move/delete)
+                     const controls = document.createElement('div');
+                     controls.className = 'element-controls';
+                     controls.innerHTML = `
+                         <button class="drag-handle" title="Move Element"><i class="fas fa-arrows-alt"></i></button>
+                         <button class="delete-btn" title="Delete Element"><i class="fas fa-trash"></i></button>
+                     `;
+                     elementWrapper.appendChild(controls);
+                     // No resize handle for the wallet button
+                 }
+
+
+                // Image load handling
+                if (isImageElement) {
+                    const imgTag = elementWrapper.querySelector('img.element-image');
+                    if (imgTag) {
+                        imgTag.src = `https://placehold.co/${defaultImageWidth}x${Math.round(defaultImageWidth * 0.75)}/FFF4E7/D97A33?text=Image`;
+                        imgTag.alt = "Placeholder Image";
+                        elementWrapper.style.width = `${defaultImageWidth}px`;
+                        elementWrapper.style.height = 'auto';
+                        handleImageLoad(imgTag, elementWrapper);
+                    }
+                }
+
+                return elementWrapper;
+            }
+
+            /** Attaches necessary event listeners to canvas elements. */
+            function setupCanvasElements() {
+                // (Setup logic remains largely the same, applies to all .canvas-element)
+                if (!canvas) return;
+                const elements = canvas.querySelectorAll(':scope > .canvas-element');
+                elements.forEach(element => {
+                    // Remove existing listeners to prevent duplicates
+                    element.removeEventListener('mousedown', handleElementSelectionMouseDown);
+                    const dragHandle = element.querySelector('.drag-handle');
+                    if(dragHandle) dragHandle.removeEventListener('mousedown', handleDragHandleMouseDown);
+                    const resizeHandle = element.querySelector('.resize-handle.br');
+                    if(resizeHandle) resizeHandle.removeEventListener('mousedown', handleResizeMouseDown);
+                    const deleteBtn = element.querySelector('.delete-btn');
+                    if (deleteBtn) deleteBtn.removeEventListener('click', deleteElement);
+                    const editBtn = element.querySelector('.edit-btn');
+                    if (editBtn) editBtn.removeEventListener('click', editElement);
+
+                    const editableElements = element.querySelectorAll('[contenteditable="true"]');
+                    editableElements.forEach(editableEl => {
+                         editableEl.removeEventListener('blur', handleContentEditableBlur);
+                         editableEl.removeEventListener('focus', setCursorText);
+                         editableEl.removeEventListener('blur', setCursorMove);
+                    });
+
+                    const imgTag = element.querySelector('img.element-image');
+                    if (imgTag) {
+                        imgTag.removeEventListener('load', () => handleImageLoad(imgTag, element));
+                        imgTag.addEventListener('load', () => handleImageLoad(imgTag, element));
+                        if (imgTag.complete && imgTag.naturalWidth > 0) { handleImageLoad(imgTag, element); }
+                    }
+
+                    // Add listeners
+                    element.addEventListener('mousedown', handleElementSelectionMouseDown);
+                    if(dragHandle) dragHandle.addEventListener('mousedown', handleDragHandleMouseDown);
+                    if(resizeHandle) resizeHandle.addEventListener('mousedown', handleResizeMouseDown);
+                    if (deleteBtn) deleteBtn.addEventListener('click', deleteElement);
+                    if (editBtn) editBtn.addEventListener('click', editElement);
+
+                    editableElements.forEach(editableEl => {
+                        editableEl.addEventListener('blur', handleContentEditableBlur);
+                        editableEl.addEventListener('focus', setCursorText);
+                        editableEl.addEventListener('blur', setCursorMove);
+                    });
+
+                    // Re-attach wallet button listener if it exists
+                    const walletButton = element.querySelector('.element-wallet-button');
+                    if (walletButton && !walletButton.onclick) { // Check if listener already exists
+                        walletButton.onclick = () => handleWalletButtonClick(walletButton);
+                    }
+                });
+            }
+
+            /** Changes cursor to 'text' when focusing editable content. */
+            function setCursorText(e) { e.target.style.cursor = 'text'; }
+
+            /** Restores cursor (if needed) and saves history on blur. */
+            function setCursorMove(e) { e.target.style.cursor = ''; handleContentEditableBlur(); }
+
+            /** Saves history when editable content loses focus. */
+            function handleContentEditableBlur() { saveToHistory(); }
+
+            /** Deletes the element. */
+            function deleteElement(e) {
+                // (Delete logic remains the same)
+                e.stopPropagation();
+                const element = e.target.closest('.canvas-element');
+                if (element && confirm('Delete this element?')) {
+                    saveToHistory();
+                    if (element === selectedElement) { setSelectedElement(null); }
+                    element.remove();
+                    checkCanvasPlaceholder();
+                }
+            }
+
+             /** Selects the element via edit button & TOGGLES panel visibility. */
+             function editElement(e) {
+                // (Edit logic remains the same)
+                e.stopPropagation();
+                const element = e.target.closest('.canvas-element');
+                if (element && propertiesPanel) {
+                    if (selectedElement !== element) { setSelectedElement(element); }
+                    propertiesPanel.classList.toggle('collapsed');
+                    if (!propertiesPanel.classList.contains('collapsed')) { updatePropertiesPanel(); }
+                }
+            }
+
+            /** Sets the currently selected element. */
+            function setSelectedElement(element) {
+                // (Selection logic remains the same)
+                if (selectedElement === element) return;
+                if (selectedElement) { selectedElement.classList.remove('active'); }
+                selectedElement = element;
+                if (selectedElement) {
+                    selectedElement.classList.add('active');
+                    updatePropertiesPanel();
+                } else {
+                    if (propertiesPanel && window.innerWidth < 992) { propertiesPanel.classList.add('collapsed'); }
+                    hideActivePalette();
+                    updatePropertiesPanel(); // Clear panel
+                }
+            }
+
+            /** Updates the properties panel based on the selected element. */
+            function updatePropertiesPanel() {
+                 if (!propertiesPanel) return;
+                 // Hide all groups initially
+                 propertiesPanel.querySelectorAll('.property-group').forEach(group => group.style.display = 'none');
+
+                 if (selectedElement) {
+                    // Get references to common input fields
+                    const textContentInput = document.getElementById('text-content');
+                    const fontFamilySelect = document.getElementById('font-family');
+                    const fontSizeSelect = document.getElementById('font-size');
+                    const leftInput = document.getElementById('pos-left');
+                    const topInput = document.getElementById('pos-top');
+                    const widthInput = document.getElementById('width');
+                    const heightInput = document.getElementById('height');
+                    const textAlignBtns = document.querySelectorAll('.text-align');
+                    const imageSrcInput = document.getElementById('image-src');
+                    const imageAltInput = document.getElementById('image-alt');
+                    const imageAspectLock = document.getElementById('image-aspect-lock');
+                    const buttonTextInput = document.getElementById('button-text');
+                    const buttonLinkInput = document.getElementById('button-link');
+                    const targetOptionBtns = document.querySelectorAll('.target-option');
+                    // --- ADDED: Crypto property inputs ---
+                    const nftContractInput = document.getElementById('nft-contract');
+                    const nftTokenIdInput = document.getElementById('nft-tokenid');
+                    const tokenSymbolInput = document.getElementById('token-symbol');
+
+                    // Find relevant inner elements for styling
+                    const innerContentElement = selectedElement.querySelector('h1, h2, h3, h4, h5, h6, p, button, span, img, a, i, label, div.element-icon span, nav, section, footer, div.element-nft-display, div.element-token-balance') || selectedElement;
+                    const editableElement = selectedElement.querySelector('[contenteditable="true"]') || innerContentElement;
+                    const layoutElement = selectedElement; // The main .canvas-element div
+
+                    // Get computed styles for fallback
+                    const computedStyleEditable = window.getComputedStyle(innerContentElement); // Use innerContentElement for text styles
+                    const computedStyleLayout = window.getComputedStyle(layoutElement);
+
+                    // Helper to get style (inline first, then computed)
+                    const getStyleValue = (element, computed, prop) => element.style[prop] || computed[prop];
+
+                    // --- Populate Appearance Group (Always Visible for selected) ---
+                    const appearanceGroup = propertiesPanel.querySelectorAll('.property-group')[1];
+                    if (appearanceGroup) {
+                        appearanceGroup.style.display = 'block';
+                        if (fontFamilySelect) fontFamilySelect.value = getStyleValue(innerContentElement, computedStyleEditable, 'fontFamily').replace(/['"]/g, '');
+                        if (fontSizeSelect) fontSizeSelect.value = getStyleValue(innerContentElement, computedStyleEditable, 'fontSize');
+                        if (textColorInput && textColorPreview) {
+                            const color = rgbToHex(getStyleValue(innerContentElement, computedStyleEditable, 'color')) || '#333333';
+                            textColorInput.value = color;
+                            updateColorPreview(textColorPreview, color);
+                        }
+                        if (bgColorInput && bgColorPreview) {
+                            const bgColorComputed = getStyleValue(layoutElement, computedStyleLayout, 'backgroundColor');
+                            const bgColor = (bgColorComputed === 'rgba(0, 0, 0, 0)' || bgColorComputed === 'transparent') ? 'transparent' : rgbToHex(bgColorComputed);
+                            bgColorInput.value = bgColor;
+                            updateColorPreview(bgColorPreview, bgColor);
+                        }
+                        if (textAlignBtns) {
+                            const currentAlign = getStyleValue(innerContentElement, computedStyleEditable, 'textAlign');
+                            textAlignBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.align === currentAlign));
+                        }
+                    }
+
+                    // --- Populate Layout & Position Group (Always Visible for selected) ---
+                    const layoutGroup = propertiesPanel.querySelectorAll('.property-group')[2];
+                    if (layoutGroup) {
+                        layoutGroup.style.display = 'block';
+                        updatePropertiesPanelPosition();
+                        if (widthInput) widthInput.value = layoutElement.style.width || '';
+                        if (heightInput) heightInput.value = layoutElement.style.height || '';
+                    }
+
+                    // --- Populate Specific Groups Based on Element Type ---
+                    const toolType = selectedElement.dataset.toolType;
+
+                    // Text Content Group
+                    const textPropGroup = document.getElementById('text-properties');
+                    const isTextEditable = editableElement.getAttribute('contenteditable') === 'true';
+                    if (isTextEditable && textContentInput && textPropGroup) {
+                        textContentInput.value = editableElement.innerText?.trim() || '';
+                        textPropGroup.style.display = 'block';
+                    }
+
+                    // Image Settings Group
+                    const imagePropGroup = document.getElementById('image-properties');
+                    const imageElement = selectedElement.querySelector('img.element-image');
+                    if (toolType === 'image' && imageElement && imageSrcInput && imageAltInput && imageAspectLock && imagePropGroup) {
+                        imagePropGroup.style.display = 'block';
+                        imageSrcInput.value = imageElement.getAttribute('src') || '';
+                        imageAltInput.value = imageElement.alt || '';
+                        imageAspectLock.checked = selectedElement.dataset.aspectLock !== 'false';
+                    }
+
+                    // Button Settings Group
+                    const buttonPropGroup = document.getElementById('button-properties');
+                    const buttonElement = selectedElement.querySelector('button.element-button');
+                    if (toolType === 'button' && buttonElement && buttonTextInput && buttonLinkInput && targetOptionBtns.length > 0 && buttonPropGroup) {
+                        buttonPropGroup.style.display = 'block';
+                        buttonTextInput.value = buttonElement.textContent || '';
+                        buttonLinkInput.value = buttonElement.getAttribute('data-href') || '#';
+                        const target = buttonElement.getAttribute('data-target') || '_self';
+                        targetOptionBtns.forEach(option => option.classList.toggle('active', option.getAttribute('data-target') === target));
+                    }
+
+                    // --- ADDED: Crypto Properties ---
+                    const nftPropGroup = document.getElementById('nft-properties');
+                    if (toolType === 'nft-display' && nftContractInput && nftTokenIdInput && nftPropGroup) {
+                        nftPropGroup.style.display = 'block';
+                        // Populate with actual values if stored (e.g., on element data attributes)
+                        nftContractInput.value = selectedElement.dataset.nftContract || '';
+                        nftTokenIdInput.value = selectedElement.dataset.nftTokenId || '';
+                    }
+
+                    const tokenPropGroup = document.getElementById('token-properties');
+                    if (toolType === 'token-balance' && tokenSymbolInput && tokenPropGroup) {
+                        tokenPropGroup.style.display = 'block';
+                        // Populate with actual values if stored
+                        tokenSymbolInput.value = selectedElement.dataset.tokenSymbol || 'SOL'; // Default to SOL
+                    }
+
+                    // Wallet Connect Button - No specific properties needed in the panel for now
+                    if (toolType === 'wallet-connect') {
+                        // Maybe show a status or the connected address here in the future
+                    }
+
+                 } else {
+                     // No element selected, ensure panel is collapsed on smaller screens
+                     if (propertiesPanel && window.innerWidth < 992) {
+                         propertiesPanel.classList.add('collapsed');
+                     }
+                 }
+            }
+
+            /** Converts RGB or RGBA color string to Hex format. */
+            function rgbToHex(rgb) {
+                // (Conversion logic remains the same)
+                if (!rgb || typeof rgb !== 'string') return rgb;
+                rgb = rgb.toLowerCase().trim();
+                if (rgb === 'transparent' || rgb === 'rgba(0, 0, 0, 0)') return 'transparent';
+                if (/^#[0-9a-f]{3,6}$/.test(rgb)) return rgb;
+                const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+                if (!match) return rgb;
+                try {
+                    const r = parseInt(match[1]).toString(16).padStart(2, '0');
+                    const g = parseInt(match[2]).toString(16).padStart(2, '0');
+                    const b = parseInt(match[3]).toString(16).padStart(2, '0');
+                    return `#${r}${g}${b}`;
+                } catch (e) { return rgb; }
+            }
+
+            /** Updates the background of a color preview swatch. */
+            function updateColorPreview(previewElement, colorValue) {
+                // (Preview logic remains the same)
+                if (!previewElement) return;
+                if (colorValue === 'transparent') {
+                    previewElement.style.backgroundColor = '';
+                    previewElement.style.backgroundImage = 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)';
+                    previewElement.style.backgroundSize = '10px 10px';
+                    previewElement.style.backgroundPosition = '0 0, 0 5px, 5px -5px, -5px 0px';
+                } else {
+                    previewElement.style.backgroundImage = 'none';
+                    previewElement.style.backgroundColor = colorValue;
+                }
+            }
+
+            /** Handles the start of dragging a tool from the sidebar. */
+            function handleToolDragStart(e) {
+                // (Drag start logic remains the same)
+                const toolType = e.target.getAttribute('data-tool');
+                if (!toolType) { e.preventDefault(); return; }
+                e.dataTransfer.setData('text/tool-type', toolType);
+                e.dataTransfer.effectAllowed = 'copy';
+                draggedTool = e.target;
+                draggedTool.classList.add('dragging-tool');
+            }
+
+            /** Handles the end of dragging a tool from the sidebar. */
+            function handleToolDragEnd(e) {
+                // (Drag end logic remains the same)
+                if(draggedTool) draggedTool.classList.remove('dragging-tool');
+                draggedTool = null;
+                if (canvas) canvas.classList.remove('drag-over');
+            }
+
+            /** Adds drag & drop listeners to the main canvas area. */
+            function addCanvasListeners() {
+                if (!canvas) return;
+                canvas.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const isTool = e.dataTransfer.types.includes('text/tool-type');
+                    if (isTool) { e.dataTransfer.dropEffect = 'copy'; canvas.classList.add('drag-over'); }
+                    else { e.dataTransfer.dropEffect = 'none'; }
+                });
+                canvas.addEventListener('dragleave', (e) => {
+                    if (e.target === canvas && !canvas.contains(e.relatedTarget)) { canvas.classList.remove('drag-over'); }
+                });
+                canvas.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    canvas.classList.remove('drag-over');
+                    const toolType = e.dataTransfer.getData('text/tool-type');
+                    if (toolType) {
+                        saveToHistory();
+                        const newElement = createElementFromTool(toolType);
+                        const canvasRect = canvas.getBoundingClientRect();
+                        const canvasWrapper = document.querySelector('.builder-canvas-wrapper');
+                        const scrollLeft = canvasWrapper.scrollLeft;
+                        const scrollTop = canvasWrapper.scrollTop;
+                        let dropX = e.clientX - canvasRect.left + scrollLeft;
+                        let dropY = e.clientY - canvasRect.top + scrollTop;
+                        const isImage = newElement.querySelector('img.element-image');
+                        let elemWidth = parseInt(newElement.style.width) || (isImage ? defaultImageWidth : 100);
+                        let elemHeight = parseInt(newElement.style.height) || 50;
+                        dropX -= elemWidth / 2; dropY -= elemHeight / 2;
+                        dropX = Math.max(0, Math.min(dropX, canvas.offsetWidth - elemWidth));
+                        dropY = Math.max(0, Math.min(dropY, canvas.offsetHeight - elemHeight));
+                        newElement.style.position = 'absolute';
+                        newElement.style.left = `${dropX}px`;
+                        newElement.style.top = `${dropY}px`;
+                        checkCanvasPlaceholder(true);
+                        canvas.appendChild(newElement);
+                        setupCanvasElements(); // Ensure listeners are attached
+                        setSelectedElement(newElement);
+                        if (isImage) { applyPropertyChange('image-src', `https://placehold.co/600x400/FFF4E7/D97A33?text=Image`, newElement); }
+
+                        // *** MODIFICATION START: Show modal immediately for wallet connect ***
+                        if (toolType === 'wallet-connect') {
+                            const walletButton = newElement.querySelector('.element-wallet-button');
+                            if (walletButton) {
+                                // Use setTimeout to ensure the element is fully rendered before showing modal
+                                setTimeout(() => showWalletModal(walletButton), 0);
+                            }
+                        }
+                        // *** MODIFICATION END ***
+                    }
+                    draggedTool = null;
+                });
+                canvas.addEventListener('click', (e) => {
+                    if (e.target === canvas) { setSelectedElement(null); }
+                });
+            }
+
+            // --- Mousedown Handlers ---
+            function handleDragHandleMouseDown(e) { /* ... (unchanged) ... */
+                e.preventDefault(); e.stopPropagation();
+                const element = e.target.closest('.canvas-element'); if (!element) return;
+                setSelectedElement(element);
+                isDraggingElement = true; draggedCanvasElement = element;
+                draggedCanvasElement.classList.add('dragging'); document.body.style.cursor = 'grabbing';
+                if (canvas) canvas.classList.add('guides-visible');
+                const elementRect = element.getBoundingClientRect(); const canvasRect = canvas.getBoundingClientRect();
+                const canvasWrapper = document.querySelector('.builder-canvas-wrapper');
+                const scrollLeft = canvasWrapper.scrollLeft; const scrollTop = canvasWrapper.scrollTop;
+                dragOffsetX = e.clientX - elementRect.left; dragOffsetY = e.clientY - elementRect.top;
+                if (element.classList.contains('centered-h') || element.classList.contains('centered-hv')) { const visualLeft = (canvas.offsetWidth / 2) - (element.offsetWidth / 2); dragOffsetX = (e.clientX - canvasRect.left + scrollLeft) - visualLeft; }
+                if (element.classList.contains('centered-v') || element.classList.contains('centered-hv')) { const visualTop = (canvas.offsetHeight / 2) - (element.offsetHeight / 2); dragOffsetY = (e.clientY - canvasRect.top + scrollTop) - visualTop; }
+            }
+            function handleElementSelectionMouseDown(e) { /* ... (unchanged) ... */
+                if (e.target.closest('.element-controls') || e.target.classList.contains('resize-handle') || e.target.closest('[contenteditable="true"]') || e.target.closest('.element-wallet-button')) { // Ignore clicks on wallet button itself
+                    return;
+                }
+                const element = e.currentTarget; setSelectedElement(element); e.stopPropagation();
+            }
+            function handleResizeMouseDown(e) { /* ... (unchanged) ... */
+                e.preventDefault(); e.stopPropagation(); isResizingElement = true;
+                draggedCanvasElement = e.target.closest('.canvas-element');
+                resizeStartX = e.clientX; resizeStartY = e.clientY;
+                initialWidth = draggedCanvasElement.offsetWidth; initialHeight = draggedCanvasElement.offsetHeight;
+                const img = draggedCanvasElement.querySelector('img.element-image');
+                const aspectLockCheckbox = document.getElementById('image-aspect-lock');
+                imageAspectRatio = null;
+                if (img && aspectLockCheckbox && aspectLockCheckbox.checked) {
+                    const naturalWidth = parseFloat(img.dataset.naturalWidth) || initialWidth;
+                    const naturalHeight = parseFloat(img.dataset.naturalHeight) || initialHeight;
+                    if (naturalWidth > 0 && naturalHeight > 0) { imageAspectRatio = naturalHeight / naturalWidth; draggedCanvasElement.dataset.aspectRatio = imageAspectRatio; }
+                } else { delete draggedCanvasElement.dataset.aspectRatio; }
+                document.body.style.cursor = e.target.style.cursor;
+            }
+
+            // --- Global Mouse Move/Up Handlers ---
+            function handleDocumentMouseMove(e) { /* ... (unchanged, handles dragging, resizing, canvas height) ... */
+                if (isDraggingElement && draggedCanvasElement) {
+                    const canvasRect = canvas.getBoundingClientRect(); const canvasWrapper = document.querySelector('.builder-canvas-wrapper');
+                    const scrollLeft = canvasWrapper.scrollLeft; const scrollTop = canvasWrapper.scrollTop;
+                    let rawLeft = (e.clientX - canvasRect.left + scrollLeft) - dragOffsetX; let rawTop = (e.clientY - canvasRect.top + scrollTop) - dragOffsetY;
+                    const elementWidth = draggedCanvasElement.offsetWidth; const elementHeight = draggedCanvasElement.offsetHeight;
+                    const elementCenterX = rawLeft + elementWidth / 2; const elementCenterY = rawTop + elementHeight / 2;
+                    const canvasWidth = canvas.offsetWidth; const canvasHeight = canvas.offsetHeight;
+                    const canvasCenterX = canvasWidth / 2; const canvasCenterY = canvasHeight / 2;
+                    let finalLeft = rawLeft; let finalTop = rawTop; let isHorizontallySnapped = false; let isVerticallySnapped = false;
+                    if (Math.abs(elementCenterX - canvasCenterX) < snapThreshold) { isHorizontallySnapped = true; if(guideLineV) guideLineV.style.backgroundColor = 'rgba(255, 0, 0, 0.7)'; } else { if(guideLineV) guideLineV.style.backgroundColor = ''; }
+                    if (Math.abs(elementCenterY - canvasCenterY) < snapThreshold) { isVerticallySnapped = true; if(guideLineH) guideLineH.style.backgroundColor = 'rgba(255, 0, 0, 0.7)'; } else { if(guideLineH) guideLineH.style.backgroundColor = ''; }
+                    if (!isHorizontallySnapped) { finalLeft = Math.max(0, Math.min(rawLeft, canvasWidth - elementWidth)); }
+                    if (!isVerticallySnapped) { finalTop = Math.max(0, Math.min(rawTop, canvasHeight - elementHeight)); }
+                    draggedCanvasElement.classList.remove('centered-h', 'centered-v', 'centered-hv'); draggedCanvasElement.style.transform = '';
+                    if (isHorizontallySnapped && isVerticallySnapped) { draggedCanvasElement.classList.add('centered-hv'); draggedCanvasElement.style.top = ''; draggedCanvasElement.style.left = ''; }
+                    else if (isHorizontallySnapped) { draggedCanvasElement.classList.add('centered-h'); draggedCanvasElement.style.left = ''; draggedCanvasElement.style.top = `${finalTop}px`; }
+                    else if (isVerticallySnapped) { draggedCanvasElement.classList.add('centered-v'); draggedCanvasElement.style.top = ''; draggedCanvasElement.style.left = `${finalLeft}px`; }
+                    else { draggedCanvasElement.style.left = `${finalLeft}px`; draggedCanvasElement.style.top = `${finalTop}px`; }
+                    updatePropertiesPanelPosition();
+                }
+                else if (isResizingElement && draggedCanvasElement) {
+                    const dx = e.clientX - resizeStartX; const dy = e.clientY - resizeStartY;
+                    let newWidth = Math.max(20, initialWidth + dx); let newHeight = Math.max(20, initialHeight + dy);
+                    if (imageAspectRatio !== null) { newHeight = newWidth * imageAspectRatio; }
+                    draggedCanvasElement.style.width = `${newWidth}px`; draggedCanvasElement.style.height = `${newHeight}px`;
+                    updatePropertiesPanelSize();
+                }
+                else if (isResizingCanvasHeight && canvas) {
+                    const dy = e.clientY - resizeStartY; const newHeight = Math.max(100, initialHeight + dy);
+                    canvas.style.height = `${newHeight}px`;
+                }
+            }
+            function handleDocumentMouseUp(e) { /* ... (unchanged) ... */
+                if (canvas) canvas.classList.remove('guides-visible');
+                if(guideLineV) guideLineV.style.backgroundColor = ''; if(guideLineH) guideLineH.style.backgroundColor = '';
+                if (isDraggingElement && draggedCanvasElement) { document.body.style.cursor = ''; draggedCanvasElement.classList.remove('dragging'); isDraggingElement = false; updatePropertiesPanelPosition(); saveToHistory(); draggedCanvasElement = null; }
+                if (isResizingElement) { document.body.style.cursor = ''; isResizingElement = false; updatePropertiesPanelSize(); saveToHistory(); imageAspectRatio = null; draggedCanvasElement = null; }
+                if (isResizingCanvasHeight) { document.body.classList.remove('resizing-canvas-h'); isResizingCanvasHeight = false; saveToHistory(); if (isCodeTabActive()) { updateCodeView(); } }
+            }
+
+            /** Updates position inputs in properties panel to show "Center". */
+            function updatePropertiesPanelPosition() { /* ... (unchanged) ... */
+                 if (!selectedElement || !propertiesPanel ) return;
+                 const leftInput = document.getElementById('pos-left'); const topInput = document.getElementById('pos-top');
+                 if (leftInput) { leftInput.value = (selectedElement.classList.contains('centered-h') || selectedElement.classList.contains('centered-hv')) ? 'Center' : (selectedElement.style.left || '0px'); }
+                 if (topInput) { topInput.value = (selectedElement.classList.contains('centered-v') || selectedElement.classList.contains('centered-hv')) ? 'Center' : (selectedElement.style.top || '0px'); }
+            }
+
+             /** Updates size inputs in properties panel. */
+             function updatePropertiesPanelSize() { /* ... (unchanged) ... */
+                if (!selectedElement || !propertiesPanel ) return;
+                const widthInput = document.getElementById('width'); const heightInput = document.getElementById('height');
+                if (widthInput) widthInput.value = selectedElement.style.width;
+                if (heightInput) heightInput.value = selectedElement.style.height;
+            }
+
+            /** Checks and updates canvas placeholder visibility. */
+            function checkCanvasPlaceholder(forceRemove = false) { /* ... (unchanged) ... */
+                if (!canvas) return;
+                const placeholder = canvas.querySelector('.canvas-placeholder'); const elementCount = canvas.querySelectorAll(':scope > .canvas-element').length;
+                if (forceRemove && placeholder) { placeholder.remove(); }
+                else if (elementCount === 0 && !placeholder) { const newPlaceholder = document.createElement('p'); newPlaceholder.className = 'canvas-placeholder'; newPlaceholder.textContent = 'Drag elements from the sidebar to start building!'; canvas.appendChild(newPlaceholder); }
+                else if (elementCount > 0 && placeholder) { placeholder.remove(); }
+            }
+
+            /** Adds drag listeners to sidebar tool items (including new crypto ones). */
+            function addToolItemListeners() {
+                // Select ALL tool items from ALL tabs
+                const allToolItems = document.querySelectorAll('.tool-item');
+                if (allToolItems) {
+                    allToolItems.forEach(item => {
+                        item.removeEventListener('dragstart', handleToolDragStart); // Remove first to prevent duplicates
+                        item.removeEventListener('dragend', handleToolDragEnd);
+                        item.addEventListener('dragstart', handleToolDragStart);
+                        item.addEventListener('dragend', handleToolDragEnd);
+                    });
+                }
+            }
+
+            /** Adds listeners to properties panel inputs/controls. */
+            function addPropertiesPanelListeners() {
+                // (Listeners remain the same, applyPropertyChange handles different types)
+                if (!propertiesPanel) return;
+                if (closePropertiesBtn) { closePropertiesBtn.addEventListener('click', () => { propertiesPanel.classList.add('collapsed'); }); }
+                propertiesPanel.addEventListener('change', (e) => { if (!selectedElement) return; const target = e.target; if (target.tagName === 'SELECT' || target.type === 'checkbox') { const property = target.id || target.name; const value = target.type === 'checkbox' ? target.checked : target.value; if (property) { applyPropertyChange(property, value); saveToHistory(); } } });
+                propertiesPanel.addEventListener('input', (e) => { if (!selectedElement) return; const target = e.target; const property = target.id || target.name; const value = target.value; if (property && ['text-content', 'image-src', 'image-alt', 'button-text', 'button-link', 'pos-left', 'pos-top', 'width', 'height', 'text-color', 'background-color', 'nft-contract', 'nft-tokenid', 'token-symbol'].includes(property)) { applyPropertyChange(property, value); } }); // Added crypto props
+                propertiesPanel.addEventListener('focusout', (e) => { if (!selectedElement) return; const target = e.target; if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') { applyPropertyChange(target.id || target.name, target.value); saveToHistory(); } });
+                propertiesPanel.addEventListener('click', (e) => { if (!selectedElement) return; const swatch = e.target.closest('.color-swatch'); if (swatch) { e.stopPropagation(); handleSwatchClick(swatch); return; } const textAlignButton = e.target.closest('.text-align'); if (textAlignButton) { const align = textAlignButton.dataset.align; applyPropertyChange('text-align', align); document.querySelectorAll('#text-align-group .text-align').forEach(b => b.classList.remove('active')); textAlignButton.classList.add('active'); saveToHistory(); return; } const targetOptionButton = e.target.closest('.target-option'); if (targetOptionButton) { const target = targetOptionButton.dataset.target; applyPropertyChange('target', target); document.querySelectorAll('#target-option-group .target-option').forEach(b => b.classList.remove('active')); targetOptionButton.classList.add('active'); saveToHistory(); return; } });
+            }
+
+             /** Applies property change, handling "Center", relative units, and image aspect ratio. */
+             function applyPropertyChange(property, value, element = selectedElement) {
+                 if (!element) return;
+
+                 // Find relevant inner elements
+                 const innerContentElement = element.querySelector('h1, h2, h3, h4, h5, h6, p, button, span, img, a, i, label, div.element-icon span, nav, section, footer, div.element-nft-display, div.element-token-balance') || element;
+                 const editableElement = element.querySelector('[contenteditable="true"]') || innerContentElement;
+                 const layoutElement = element; // The main .canvas-element div
+
+                 const isValidSizeOrPosValue = (val) => { val = String(val).trim().toLowerCase(); return /^\d+(\.\d+)?(px|%|vw|vh|em|rem)?$/.test(val) || val === 'auto' || val === 'center'; };
+                 const formatSizeOrPosValue = (val) => { val = String(val).trim().toLowerCase(); if (val === 'auto' || val === 'center' || /%|vw|vh|em|rem|px$/.test(val)) { return val; } else if (/^\d+(\.\d+)?$/.test(val)) { return `${val}px`; } return ''; };
+
+                 switch (property) {
+                     // --- Standard Properties (mostly unchanged) ---
+                     case 'text-content': if (editableElement.getAttribute('contenteditable') === 'true') editableElement.innerText = value; break;
+                     case 'button-text': const btnTextEl = element.querySelector('button.element-button'); if(btnTextEl && btnTextEl.getAttribute('contenteditable') === 'true') btnTextEl.textContent = value; break;
+                     case 'font-family': innerContentElement.style.fontFamily = value; break;
+                     case 'font-size': innerContentElement.style.fontSize = value; break;
+                     case 'text-color': innerContentElement.style.color = value; updateColorPreview(document.getElementById('text-color-preview'), value); break;
+                     case 'background-color': layoutElement.style.backgroundColor = value; updateColorPreview(document.getElementById('bg-color-preview'), value); break;
+                     case 'text-align': innerContentElement.style.textAlign = value; break;
+                     case 'pos-left': /* ... (unchanged centering/positioning logic) ... */
+                         value = String(value).trim().toLowerCase();
+                         if (value === 'center') { layoutElement.classList.add('centered-h'); layoutElement.style.left = ''; if(layoutElement.classList.contains('centered-v') || layoutElement.classList.contains('centered-hv')) { layoutElement.classList.add('centered-hv'); layoutElement.classList.remove('centered-h', 'centered-v'); layoutElement.style.transform = 'translate(-50%, -50%)'; } else { layoutElement.classList.remove('centered-hv', 'centered-v'); layoutElement.style.transform = 'translateX(-50%)'; } }
+                         else if (isValidSizeOrPosValue(value)) { layoutElement.classList.remove('centered-h', 'centered-hv'); layoutElement.style.left = formatSizeOrPosValue(value); layoutElement.style.transform = layoutElement.style.transform.replace(/translateX\([^)]+\)/, '').trim(); if(layoutElement.classList.contains('centered-v')) { layoutElement.style.transform = 'translateY(-50%)'; } }
+                         break;
+                     case 'pos-top': /* ... (unchanged centering/positioning logic) ... */
+                         value = String(value).trim().toLowerCase();
+                         if (value === 'center') { layoutElement.classList.add('centered-v'); layoutElement.style.top = ''; if(layoutElement.classList.contains('centered-h') || layoutElement.classList.contains('centered-hv')) { layoutElement.classList.add('centered-hv'); layoutElement.classList.remove('centered-h', 'centered-v'); layoutElement.style.transform = 'translate(-50%, -50%)'; } else { layoutElement.classList.remove('centered-hv', 'centered-h'); layoutElement.style.transform = 'translateY(-50%)'; } }
+                         else if (isValidSizeOrPosValue(value)) { layoutElement.classList.remove('centered-v', 'centered-hv'); layoutElement.style.top = formatSizeOrPosValue(value); layoutElement.style.transform = layoutElement.style.transform.replace(/translateY\([^)]+\)/, '').trim(); if(layoutElement.classList.contains('centered-h')) { layoutElement.style.transform = 'translateX(-50%)'; } }
+                         break;
+                     case 'width': /* ... (unchanged size logic with aspect ratio check) ... */
+                         value = String(value).trim().toLowerCase();
+                         if (isValidSizeOrPosValue(value)) { const newWidth = formatSizeOrPosValue(value); layoutElement.style.width = newWidth; const img = layoutElement.querySelector('img.element-image'); const aspectLock = layoutElement.dataset.aspectLock !== 'false'; const currentAspectRatio = parseFloat(layoutElement.dataset.aspectRatio); if (img && aspectLock && currentAspectRatio > 0 && newWidth !== 'auto' && layoutElement.style.height !== 'auto') { const widthValue = parseFloat(newWidth); if (!isNaN(widthValue) && widthValue > 0) { layoutElement.style.height = `${widthValue * currentAspectRatio}px`; updatePropertiesPanelSize(); } } }
+                         else { layoutElement.style.width = ''; }
+                         break;
+                    case 'height': /* ... (unchanged size logic with aspect ratio check) ... */
+                         value = String(value).trim().toLowerCase();
+                         if (isValidSizeOrPosValue(value)) { const newHeight = formatSizeOrPosValue(value); layoutElement.style.height = newHeight; const img = layoutElement.querySelector('img.element-image'); const aspectLock = layoutElement.dataset.aspectLock !== 'false'; const currentAspectRatio = parseFloat(layoutElement.dataset.aspectRatio); if (img && aspectLock && currentAspectRatio > 0 && newHeight !== 'auto' && layoutElement.style.width !== 'auto') { const heightValue = parseFloat(newHeight); if (!isNaN(heightValue) && heightValue > 0) { layoutElement.style.width = `${heightValue / currentAspectRatio}px`; updatePropertiesPanelSize(); } } }
+                         else { layoutElement.style.height = ''; }
+                         break;
+                     case 'image-src': /* ... (unchanged image src logic) ... */
+                         const imgTag = element.querySelector('img.element-image'); if (imgTag) { imgTag.src = value || `https://placehold.co/${defaultImageWidth}x${Math.round(defaultImageWidth * 0.75)}/cccccc/ffffff?text=Invalid+URL`; imgTag.alt = element.querySelector('#image-alt')?.value || 'Image'; imgTag.removeAttribute('data-natural-width'); imgTag.removeAttribute('data-natural-height'); imgTag.removeEventListener('load', () => handleImageLoad(imgTag, element)); imgTag.addEventListener('load', () => handleImageLoad(imgTag, element)); imgTag.onerror = () => { imgTag.src = `https://placehold.co/${element.offsetWidth || defaultImageWidth}x${element.offsetHeight || Math.round(defaultImageWidth*0.75)}/dc3545/ffffff?text=Error+Loading`; handleImageLoad(imgTag, element); }; if (imgTag.complete) { handleImageLoad(imgTag, element); } }
+                         break;
+                     case 'image-alt': const imgAlt = element.querySelector('img.element-image'); if (imgAlt) imgAlt.alt = value; break;
+                     case 'image-aspect-lock': /* ... (unchanged aspect lock logic) ... */
+                         element.dataset.aspectLock = value ? 'true' : 'false'; if (value) { const currentAspectRatio = parseFloat(element.dataset.aspectRatio); if (currentAspectRatio > 0 && element.style.width && element.style.width !== 'auto') { element.style.height = `${element.offsetWidth * currentAspectRatio}px`; updatePropertiesPanelSize(); } }
+                         break;
+                     case 'button-link': const btnLink = element.querySelector('button.element-button'); if (btnLink) btnLink.setAttribute('data-href', value); break;
+                     case 'target': const btnTarget = element.querySelector('button.element-button'); if (btnTarget) btnTarget.setAttribute('data-target', value); break;
+
+                     // --- ADDED: Crypto Properties ---
+                     case 'nft-contract':
+                         element.dataset.nftContract = value;
+                         // Optional: Update display if needed, e.g., fetch NFT data
+                         console.log("NFT Contract set to:", value);
+                         break;
+                     case 'nft-tokenid':
+                         element.dataset.nftTokenId = value;
+                         // Optional: Update display if needed
+                         console.log("NFT Token ID set to:", value);
+                         break;
+                     case 'token-symbol':
+                         element.dataset.tokenSymbol = value;
+                         // Update the display text
+                         const tokenSpan = element.querySelector('.element-token-balance span:first-child');
+                         if (tokenSpan) tokenSpan.textContent = `Token: ${value || '???'}`;
+                         console.log("Token Symbol set to:", value);
+                         break;
+                 }
+
+                 if (isCodeTabActive()) { updateCodeView(); }
+             }
+
+            /** Handles image loading to set initial size and aspect ratio */
+            function handleImageLoad(imgTag, wrapperElement) { /* ... (unchanged) ... */
+                const naturalWidth = imgTag.naturalWidth; const naturalHeight = imgTag.naturalHeight;
+                if (naturalWidth > 0 && naturalHeight > 0) {
+                    imgTag.dataset.naturalWidth = naturalWidth; imgTag.dataset.naturalHeight = naturalHeight;
+                    const aspectRatio = naturalHeight / naturalWidth; wrapperElement.dataset.aspectRatio = aspectRatio;
+                    const hasManualWidth = wrapperElement.style.width && wrapperElement.style.width !== 'auto';
+                    const hasManualHeight = wrapperElement.style.height && wrapperElement.style.height !== 'auto';
+                    if (!hasManualWidth && !hasManualHeight) { const canvasWidth = canvas.offsetWidth; let initialWidth = naturalWidth; if (initialWidth > canvasWidth) { initialWidth = canvasWidth * 0.95; } initialWidth = Math.max(initialWidth, defaultImageWidth / 2); wrapperElement.style.width = `${initialWidth}px`; wrapperElement.style.height = `${initialWidth * aspectRatio}px`; if (wrapperElement === selectedElement) { updatePropertiesPanelSize(); } }
+                    else if (hasManualWidth && !hasManualHeight) { wrapperElement.style.height = `${wrapperElement.offsetWidth * aspectRatio}px`; if (wrapperElement === selectedElement) updatePropertiesPanelSize(); }
+                    else if (!hasManualWidth && hasManualHeight) { wrapperElement.style.width = `${wrapperElement.offsetHeight / aspectRatio}px`; if (wrapperElement === selectedElement) updatePropertiesPanelSize(); }
+                } else { console.warn("Could not get natural dimensions for image:", imgTag.src); }
+            }
+
+            /** Updates the saved version count display in the top bar. */
+            function updateSavedVersionCount() {
+                let count = 0;
+                try {
+                    for (let i = 0; i < MAX_VERSIONS; i++) {
+                        if (localStorage.getItem(`${localStorageVersionPrefix}${i}`)) {
+                            count++;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Could not access local storage to count versions:", error);
+                    showStatusMessage("Could not read saved versions.", "error");
+                }
+                currentVersionsSaved = count;
+                if (savedVersionCountSpan) savedVersionCountSpan.textContent = currentVersionsSaved;
+                if (maxVersionCountSpan) maxVersionCountSpan.textContent = MAX_VERSIONS;
+                // Disable load button if no versions are saved
+                if (loadVersionBtn) loadVersionBtn.disabled = (currentVersionsSaved === 0);
+                // Disable save button if max versions reached
+                if (saveBtn) saveBtn.disabled = (currentVersionsSaved >= MAX_VERSIONS);
+            }
+
+            /** Adds listeners to top bar buttons (Save, Preview, Undo, Publish, Load). */
+            function addTopBarButtonListeners() {
+                // Save Button
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', () => {
+                        if (currentVersionsSaved >= MAX_VERSIONS) {
+                            showStatusMessage(`Max ${MAX_VERSIONS} versions saved.`, 'error');
+                            return;
+                        }
+                        if (canvas) {
+                            try {
+                                localStorage.setItem(`${localStorageVersionPrefix}${currentVersionsSaved}`, canvas.innerHTML);
+                                updateSavedVersionCount(); // Update count and button states
+                                showStatusMessage(`Version ${currentVersionsSaved} saved (Simulated).`, 'success');
+                            } catch (error) {
+                                console.error("Save version error:", error);
+                                showStatusMessage("Could not save version. Storage might be full.", 'error');
+                            }
+                        }
+                    });
+                }
+                // Preview Button
+                if (previewBtn && canvas) {
+                    previewBtn.addEventListener('click', () => {
+                        const previewWindow = window.open('', '_blank');
+                        if (!previewWindow) {
+                            showStatusMessage('Popup blocked! Please allow popups for this site.', 'error');
+                            return;
+                        }
+                        const previewHtml = generateFullHtmlForPreview();
+                        previewWindow.document.write(previewHtml);
+                        previewWindow.document.close();
+                    });
+                }
+                // Undo Button
+                if (undoBtn) undoBtn.addEventListener('click', undo);
+                // Publish Button
+                if (publishBtn) publishBtn.addEventListener('click', () => showStatusMessage('Publish feature not implemented.', 'info'));
+                // Load Version Button (ADDED)
+                if (loadVersionBtn && canvas) {
+                    loadVersionBtn.addEventListener('click', () => {
+                        if (currentVersionsSaved === 0) {
+                            showStatusMessage("No versions saved to load.", 'info');
+                            return;
+                        }
+                        const versionToLoad = prompt(`Enter version number to load (1-${currentVersionsSaved}):`);
+                        if (versionToLoad === null) return; // User cancelled
+
+                        const versionNum = parseInt(versionToLoad);
+                        if (isNaN(versionNum) || versionNum < 1 || versionNum > currentVersionsSaved) {
+                            showStatusMessage(`Invalid version number. Please enter between 1 and ${currentVersionsSaved}.`, 'error');
+                            return;
+                        }
+
+                        try {
+                            const savedHtml = localStorage.getItem(`${localStorageVersionPrefix}${versionNum - 1}`);
+                            if (savedHtml) {
+                                canvas.innerHTML = savedHtml;
+                                setupCanvasElements(); // Re-attach listeners to loaded elements
+                                setSelectedElement(null); // Deselect any current element
+                                history = [savedHtml]; // Reset history with the loaded state
+                                if (undoBtn) undoBtn.disabled = true; // Disable undo after load
+                                if (isCodeTabActive()) { updateCodeView(); }
+                                checkCanvasPlaceholder(); // Check if placeholder needed
+                                showStatusMessage(`Version ${versionNum} loaded successfully.`, 'success');
+                            } else {
+                                showStatusMessage(`Could not find saved data for version ${versionNum}.`, 'error');
+                            }
+                        } catch (error) {
+                            console.error("Load version error:", error);
+                            showStatusMessage("Could not load version.", 'error');
+                        }
+                    });
+                }
+            }
+
+            /** Generates full HTML for preview. */
+            function generateFullHtmlForPreview() {
+                // (Updated to handle crypto elements correctly)
+                if (!canvas) return '';
+                const previewCanvas = canvas.cloneNode(true);
+                previewCanvas.querySelectorAll('.element-controls, .canvas-placeholder, .resize-handle, .guide-line').forEach(el => el.remove());
+                previewCanvas.querySelectorAll('.canvas-element.active').forEach(el => el.classList.remove('active'));
+                previewCanvas.querySelectorAll('.canvas-element').forEach(el => {
+                    el.removeAttribute('draggable'); el.style.cursor = 'default'; el.style.border = ''; el.style.boxShadow = ''; el.classList.remove('dragging');
+                    delete el.dataset.aspectRatio; delete el.dataset.aspectLock; delete el.dataset.toolType;
+                    delete el.dataset.nftContract; delete el.dataset.nftTokenId; delete el.dataset.tokenSymbol; // Remove crypto data attributes
+                    delete el.dataset.connectedWallet; delete el.dataset.connectedAccount; // Remove wallet state
+                    const img = el.querySelector('img.element-image'); if (img) { delete img.dataset.naturalWidth; delete img.dataset.naturalHeight; }
+                });
+                previewCanvas.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
+                previewCanvas.querySelectorAll('button.element-button[data-href]').forEach(btn => { /* ... (unchanged button -> link conversion) ... */
+                    const link = btn.getAttribute('data-href'); const target = btn.getAttribute('data-target') || '_self';
+                    if (link && link !== '#') { const anchor = document.createElement('a'); anchor.href = link; anchor.target = target; anchor.textContent = btn.textContent; anchor.className = Array.from(btn.classList).filter(cls => cls.startsWith('element-')).join(' '); anchor.classList.add('preview-button-link'); const stylesToCopy = ['color', 'background-color', 'font-family', 'font-size', 'font-weight', 'text-align', 'padding', 'border-radius', 'margin', 'display', 'width', 'height']; stylesToCopy.forEach(styleProp => { if (btn.style[styleProp]) anchor.style[styleProp] = btn.style[styleProp]; }); btn.parentNode.replaceChild(anchor, btn); }
+                    else { btn.removeAttribute('data-href'); btn.removeAttribute('data-target'); }
+                });
+                // Keep crypto buttons as buttons but remove onclick
+                 previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
+                    btn.removeAttribute('onclick');
+                    // Reset text for preview
+                    btn.textContent = 'Connect Wallet';
+                    btn.classList.remove('connected');
+                 });
+                previewCanvas.querySelectorAll('.element-columns > div').forEach(col => { col.style.border = ''; });
+                previewCanvas.querySelectorAll('.element-spacer').forEach(sp => { sp.style.background = ''; sp.style.opacity = ''; });
+
+                let previewBodyHtml = previewCanvas.innerHTML;
+                const canvasHeight = canvas.style.height || '800px';
+
+                // IMPORTANT: The preview won't have the wallet connection JS unless explicitly added here
+                return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        .website-container { position: relative; max-width: 1200px; height: ${canvasHeight}; margin: 20px auto; padding: 20px; border: 1px solid #eee; overflow: hidden; }
+        ${defaultElementStyles}
+    </style>
+</head>
+<body>
+    <div class="website-container">
+        ${previewBodyHtml}
+    </div>
+    </body>
+</html>`;
+            }
+
+            /** Adds listeners to switch sidebar tabs. */
+            function addSidebarTabListeners() {
+                // (Logic updated slightly to handle more tabs and display styles)
+                if (sidebarTabs && tabContents) {
+                    sidebarTabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const tabName = tab.getAttribute('data-tab');
+                            if (currentActiveTab === tabName) return;
+                            currentActiveTab = tabName;
+                            sidebarTabs.forEach(t => t.classList.remove('active'));
+                            tab.classList.add('active');
+                            tabContents.forEach(content => {
+                                const contentTabName = content.id.replace('-tab', '');
+                                // Determine display style based on tab
+                                let displayStyle = 'none';
+                                if (contentTabName === tabName) {
+                                    // Default to 'block', use 'flex' for specific tabs
+                                    displayStyle = (contentTabName === 'code' || contentTabName === 'ai' || contentTabName === 'crypto') ? 'flex' : 'block';
+                                }
+                                content.style.display = displayStyle;
+                                // Ensure flex tabs are column direction
+                                if (displayStyle === 'flex') {
+                                    content.style.flexDirection = 'column';
+                                }
+                            });
+                            if (tabName === 'code') { updateCodeView(); }
+                        });
+                    });
+                    // Initial setup - ensure only 'elements' is visible
+                    tabContents.forEach(content => {
+                        const contentTabName = content.id.replace('-tab', '');
+                        if (contentTabName !== 'elements') {
+                            content.style.display = 'none';
+                        } else {
+                            content.style.display = 'block'; // Ensure elements tab is block initially
+                        }
+                    });
+                     // Ensure the first tab button is active
+                     sidebarTabs.forEach((tab, index) => {
+                         tab.classList.toggle('active', index === 0);
+                     });
+                     currentActiveTab = 'elements';
+                }
+            }
+
+
+            /** Adds listeners to collapse/expand sidebar sections. */
+            function addSidebarSectionToggleListeners() {
+                 // (Logic remains the same, excludes AI/Crypto sections)
+                 const sidebarContentArea = document.querySelector('.sidebar-content');
+                 if (sidebarContentArea) {
+                    sidebarContentArea.addEventListener('click', (e) => {
+                        const titleElement = e.target.closest('.sidebar-section-title');
+                        if (titleElement) {
+                            const sectionElement = titleElement.closest('.sidebar-section');
+                            const isAiAssistance = sectionElement?.querySelector('#ai-tool-selector');
+                            const isAiGenerator = sectionElement?.querySelector('#ai-prompt-textarea');
+                            const isCryptoSection = sectionElement?.closest('#crypto-tab'); // Check if inside crypto tab
+                            // Only toggle if it's NOT AI/Crypto sections AND has a toggle icon
+                            if (sectionElement && !isAiAssistance && !isAiGenerator && !isCryptoSection && titleElement.querySelector('.section-icon')) {
+                                sectionElement.classList.toggle('collapsed');
+                            }
+                        }
+                    });
+                 }
+            }
+
+            /** Adds listeners to device preview buttons. */
+            function addDeviceButtonListeners() { /* ... (unchanged) ... */
+                if (deviceButtons && canvas) { deviceButtons.forEach(btn => { btn.addEventListener('click', () => { const device = btn.getAttribute('data-device'); deviceButtons.forEach(b => b.classList.remove('active')); btn.classList.add('active'); canvas.classList.remove('canvas-device-mobile', 'canvas-device-tablet'); if (device === 'mobile') canvas.classList.add('canvas-device-mobile'); else if (device === 'tablet') canvas.classList.add('canvas-device-tablet'); }); }); }
+            }
+
+             /** Adds listeners to filter elements by category. */
+             function addElementCategoryListeners() {
+                const categoriesContainer = document.querySelector('.element-categories');
+                if(categoriesContainer) {
+                    categoriesContainer.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('element-category-tag')) {
+                            const tag = e.target;
+                            categoriesContainer.querySelectorAll('.element-category-tag').forEach(t => t.classList.remove('active'));
+                            tag.classList.add('active');
+                            const category = tag.textContent.trim().toLowerCase();
+
+                            // Define categories for ALL elements, including crypto
+                            const toolCategories = {
+                                heading: 'basic', paragraph: 'basic', button: 'basic', image: 'basic',
+                                columns: 'layout', spacer: 'layout', divider: 'layout', container: 'layout',
+                                card: 'components', navbar: 'components', footer: 'components', hero: 'components',
+                                video: 'media', icon: 'media',
+                                form: 'forms', input: 'forms', textarea: 'forms', checkbox: 'forms',
+                                'nft-display': 'crypto', 'wallet-connect': 'crypto', 'token-balance': 'crypto' // Added crypto
+                            };
+
+                            // Filter elements in the Elements tab
+                            const elementsToolItems = document.querySelectorAll('#elements-tab .tool-item');
+                            elementsToolItems.forEach(item => {
+                                const itemToolType = item.dataset.tool;
+                                const show = (category === 'all' || toolCategories[itemToolType] === category || category === 'crypto'); // Show crypto if 'crypto' category selected
+                                item.style.display = show ? 'flex' : 'none';
+                            });
+
+                             // Filter elements in the Crypto tab (always show if crypto category selected)
+                             const cryptoToolItems = document.querySelectorAll('#crypto-tab .tool-item');
+                             cryptoToolItems.forEach(item => {
+                                 item.style.display = (category === 'all' || category === 'crypto') ? 'flex' : 'none';
+                             });
+                        }
+                    });
+                }
+            }
+
+             /** Adds listener to copy code button. */
+             function addCopyCodeButtonListener() { /* ... (unchanged) ... */
+                 if (copyCodeBtn && generatedCodeDisplay) { copyCodeBtn.addEventListener('click', () => { const codeElement = generatedCodeDisplay.querySelector('code'); const codeToCopy = codeElement ? codeElement.textContent : generatedCodeDisplay.textContent; if (!codeToCopy || codeToCopy.trim() === '' || codeToCopy.includes('<p class="canvas-placeholder">')) { showTemporaryMessage(copyCodeBtn, 'No code generated yet!', true); return; } if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(codeToCopy).then(() => { showTemporaryMessage(copyCodeBtn, '<i class="fas fa-check"></i> Copied!'); }).catch(err => { console.error('Clipboard API copy failed:', err); copyCodeFallback(codeToCopy); }); } else { copyCodeFallback(codeToCopy); } }); }
+             }
+
+             /** Fallback method for copying code using deprecated execCommand. */
+             function copyCodeFallback(codeToCopy) { /* ... (unchanged) ... */
+                 try { const textArea = document.createElement("textarea"); textArea.value = codeToCopy; textArea.style.position = "fixed"; textArea.style.top = "-9999px"; textArea.style.left = "-9999px"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); const successful = document.execCommand('copy'); document.body.removeChild(textArea); if (successful) { showTemporaryMessage(copyCodeBtn, '<i class="fas fa-check"></i> Copied! (Fallback)'); } else { throw new Error('execCommand copy failed'); } } catch (fallbackErr) { console.error('Fallback copy failed:', fallbackErr); showTemporaryMessage(copyCodeBtn, 'Copy failed!', true); }
+             }
+
+             /** Shows a temporary message on a button. */
+             function showTemporaryMessage(buttonElement, message, isError = false) { /* ... (unchanged) ... */
+                 const originalText = buttonElement.innerHTML; buttonElement.innerHTML = message; buttonElement.disabled = true; const originalBgColor = buttonElement.style.backgroundColor; if (isError) { buttonElement.style.backgroundColor = '#dc3545'; } setTimeout(() => { buttonElement.innerHTML = originalText; buttonElement.disabled = false; if (isError) { buttonElement.style.backgroundColor = originalBgColor; } }, 2000);
+             }
+
+            /** Populates color palette popups. */
+            function populateColorPalettes() { /* ... (unchanged) ... */
+                if (!textColorPalette || !bgColorPalette) return; textColorPalette.innerHTML = ''; bgColorPalette.innerHTML = ''; function createCloseButton() { const btn = document.createElement('button'); btn.className = 'close-palette-btn'; btn.title = 'Close Palette'; btn.innerHTML = '&times;'; btn.type = 'button'; btn.addEventListener('click', (e) => { e.stopPropagation(); hideActivePalette(); }); return btn; } textColorPalette.appendChild(createCloseButton()); bgColorPalette.appendChild(createCloseButton().cloneNode(true)); colorPalette.forEach(color => { const swatch = document.createElement('div'); swatch.className = 'color-swatch'; swatch.dataset.color = color; swatch.title = color; updateColorPreview(swatch, color); textColorPalette.appendChild(swatch.cloneNode(true)); bgColorPalette.appendChild(swatch); });
+            }
+
+            /** Adds listeners to color preview triggers. */
+            function addPaletteEventListeners() { /* ... (unchanged) ... */
+                if (textColorPreview) { textColorPreview.addEventListener('click', (e) => { e.stopPropagation(); togglePalette(textColorPalette, textColorPreview); }); } if (bgColorPreview) { bgColorPreview.addEventListener('click', (e) => { e.stopPropagation(); togglePalette(bgColorPalette, bgColorPreview); }); }
+            }
+
+            /** Toggles visibility of a color palette. */
+            function togglePalette(paletteEl, triggerEl) { /* ... (unchanged) ... */
+                if (!paletteEl) return; const isVisible = paletteEl.classList.contains('visible'); hideActivePalette(); if (!isVisible) { paletteEl.classList.add('visible'); activePalette = paletteEl; }
+            }
+
+            /** Hides the currently active color palette. */
+            function hideActivePalette() { /* ... (unchanged) ... */
+                 if (activePalette) { activePalette.classList.remove('visible'); activePalette = null; }
+            }
+
+            /** Handles clicking a color swatch. */
+            function handleSwatchClick(swatchEl) { /* ... (unchanged) ... */
+                if (!selectedElement) return; const color = swatchEl.dataset.color; const palette = swatchEl.closest('.color-palette-popup'); if (!palette) return; if (palette.id === 'text-color-palette') { applyPropertyChange('text-color', color); if (textColorInput) textColorInput.value = color; } else if (palette.id === 'bg-color-palette') { applyPropertyChange('background-color', color); if (bgColorInput) bgColorInput.value = color; } hideActivePalette(); saveToHistory();
+            }
+
+            /** Global click listener to close palettes when clicking outside. */
+            function handleGlobalClickForPalette(e) { /* ... (unchanged) ... */
+                if (activePalette && !activePalette.contains(e.target)) { const triggerId = activePalette.id === 'text-color-palette' ? 'text-color-preview' : 'bg-color-preview'; const triggerEl = document.getElementById(triggerId); if (!triggerEl || !triggerEl.contains(e.target)) { hideActivePalette(); } }
+            }
+
+            // --- Sidebar Resizer Logic ---
+            function addSidebarResizerListeners() { /* ... (unchanged) ... */
+                if (!sidebarResizer || !sidebar || !canvasContainer) return; let startX_sidebar, startWidthSidebar; function handleSidebarMouseMove(e) { if (!isResizingSidebar) return; const currentX = e.clientX; const dx = currentX - startX_sidebar; let newSidebarWidth = startWidthSidebar + dx; const minSidebarWidth = parseInt(window.getComputedStyle(sidebar).minWidth, 10) || 150; const maxSidebarWidth = parseInt(window.getComputedStyle(sidebar).maxWidth, 10) || 600; newSidebarWidth = Math.max(minSidebarWidth, Math.min(newSidebarWidth, maxSidebarWidth)); sidebar.style.width = `${newSidebarWidth}px`; } function handleSidebarMouseUp() { if (!isResizingSidebar) return; isResizingSidebar = false; document.removeEventListener('mousemove', handleSidebarMouseMove); document.removeEventListener('mouseup', handleSidebarMouseUp); document.body.classList.remove('resizing-sidebar'); } sidebarResizer.addEventListener('mousedown', (e) => { isResizingSidebar = true; startX_sidebar = e.clientX; startWidthSidebar = sidebar.offsetWidth; document.addEventListener('mousemove', handleSidebarMouseMove); document.addEventListener('mouseup', handleSidebarMouseUp); document.body.classList.add('resizing-sidebar'); e.preventDefault(); });
+            }
+
+            // --- Canvas Height Resizer Logic ---
+            function addCanvasResizerListeners() { /* ... (unchanged) ... */
+                if (!canvasResizerY || !canvas) return; canvasResizerY.addEventListener('mousedown', (e) => { isResizingCanvasHeight = true; resizeStartY = e.clientY; initialHeight = canvas.offsetHeight; document.body.classList.add('resizing-canvas-h'); e.preventDefault(); });
+            }
+
+            // --- AI Tool Selection and Generation Logic ---
+            function addAiToolListeners() { /* ... (unchanged) ... */
+                if (aiToolSelector) { aiToolSelector.addEventListener('click', (e) => { const clickedTool = e.target.closest('.list-tool-item'); if (!clickedTool) return; const toolId = clickedTool.dataset.aiTool; if (!toolId) return; aiToolSelector.querySelectorAll('.list-tool-item').forEach(tool => { tool.classList.remove('active'); }); clickedTool.classList.add('active'); selectedAiTool = toolId; console.log('Selected AI Tool:', selectedAiTool); }); }
+                if (aiGenerateBtn && aiPromptTextarea) { aiGenerateBtn.addEventListener('click', () => { const promptText = aiPromptTextarea.value.trim(); if (!selectedAiTool) { showStatusMessage('Please select an AI tool first.', 'error'); return; } if (!promptText) { showStatusMessage('Please enter a description or prompt.', 'error'); aiPromptTextarea.focus(); return; } console.log('--- AI Request ---'); console.log('Tool:', selectedAiTool); console.log('Prompt:', promptText); console.log('------------------'); const simulatedResponse = `AI Result for Tool: ${selectedAiTool}\n\nPrompt: "${promptText}"\n\n(This is a simulated response. Replace with actual AI generation.)`; if (aiOutputDisplay && aiOutputSection) { aiOutputDisplay.textContent = simulatedResponse; aiOutputSection.style.display = 'block'; } else { showStatusMessage(`Simulated AI Request:\nTool: ${selectedAiTool}\nPrompt: ${promptText}`, 'info'); } }); }
+            }
+
+            // --- Wallet Connection Logic ---
+
+            /** Shows a status message at the bottom of the screen. */
+            function showStatusMessage(message, type = 'info', duration = 3000) {
+                if (!walletStatusMessage) return;
+                walletStatusMessage.textContent = message;
+                walletStatusMessage.className = ''; // Reset classes
+                walletStatusMessage.classList.add(type); // 'info', 'success', 'error'
+                walletStatusMessage.style.display = 'block';
+                // Clear previous timeout if exists
+                if(walletStatusMessage.timeoutId) {
+                    clearTimeout(walletStatusMessage.timeoutId);
+                }
+                walletStatusMessage.timeoutId = setTimeout(() => {
+                    walletStatusMessage.style.display = 'none';
+                    walletStatusMessage.timeoutId = null;
+                }, duration);
+            }
+
+            /** Shows the wallet selection modal. */
+            function showWalletModal(buttonElement) {
+                if (walletModal) {
+                    currentWalletButton = buttonElement; // Store the button that was clicked
+                    walletModal.classList.add('visible');
+                }
+            }
+
+            /** Hides the wallet selection modal. */
+            function hideWalletModal() {
+                if (walletModal) {
+                    walletModal.classList.remove('visible');
+                    currentWalletButton = null; // Clear the reference
+                }
+            }
+
+            /** Handles the click on the main wallet connect button on the canvas. */
+            function handleWalletButtonClick(buttonElement) {
+                const currentWallet = buttonElement.dataset.connectedWallet;
+                const currentAccount = buttonElement.dataset.connectedAccount;
+
+                if (currentWallet && currentAccount) {
+                    // Already connected, so disconnect
+                    if (currentWallet === 'phantom') {
+                        disconnectPhantom(buttonElement);
+                    } else if (currentWallet === 'metamask') {
+                        disconnectMetaMask(buttonElement);
+                    }
+                } else {
+                    // Not connected, show the modal
+                    showWalletModal(buttonElement);
+                }
+            }
+
+            /** Updates the wallet button's appearance and data attributes. */
+            function updateWalletButtonState(buttonElement, walletType, account) {
+                if (!buttonElement) return;
+
+                if (walletType && account) {
+                    // Connected state
+                    const shortAccount = `${account.substring(0, 4)}...${account.substring(account.length - 4)}`;
+                    buttonElement.textContent = `Disconnect ${walletType === 'metamask' ? 'MetaMask' : 'Phantom'} (${shortAccount})`;
+                    buttonElement.classList.add('connected');
+                    buttonElement.dataset.connectedWallet = walletType;
+                    buttonElement.dataset.connectedAccount = account;
+                    connectedWalletType = walletType; // Update global state if needed
+                    connectedAccount = account;
+                } else {
+                    // Disconnected state
+                    buttonElement.textContent = 'Connect Wallet';
+                    buttonElement.classList.remove('connected');
+                    delete buttonElement.dataset.connectedWallet;
+                    delete buttonElement.dataset.connectedAccount;
+                    connectedWalletType = null; // Update global state if needed
+                    connectedAccount = null;
+                }
+                 saveToHistory(); // Save state change
+                 if (isCodeTabActive()) { updateCodeView(); } // Update code view if active
+            }
+
+            // --- MetaMask Connection (User Provided - Modified) ---
+            async function connectMetaMask(buttonElement) {
+                if (window.ethereum) {
+                    try {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        console.log("🦊 MetaMask connected:", accounts[0]);
+                        updateWalletButtonState(buttonElement, 'metamask', accounts[0]);
+                        showStatusMessage(`MetaMask Connected: ${accounts[0].substring(0, 6)}...`, 'success');
+                        hideWalletModal();
+                    } catch (err) {
+                        console.error("MetaMask connect error:", err);
+                        showStatusMessage(`MetaMask Connection Error: ${err.message || 'User rejected.'}`, 'error');
+                        hideWalletModal(); // Hide modal even on error
+                    }
+                } else {
+                    console.error("MetaMask not found.");
+                    showStatusMessage("MetaMask not found. Please install the extension.", 'error');
+                    hideWalletModal(); // Hide modal if not found
+                }
+            }
+
+            // --- MetaMask Disconnection (User Provided - Modified) ---
+            function disconnectMetaMask(buttonElement) {
+                // MetaMask doesn’t allow forced disconnection via JS.
+                // To simulate logout, we clear the state in our app.
+                console.log("🦊 MetaMask 'logged out' (simulated by clearing session)");
+                updateWalletButtonState(buttonElement, null, null); // Clear state
+                showStatusMessage("MetaMask Disconnected (Simulated)", 'info');
+            }
+
+            // --- Phantom Connection (User Provided - Modified) ---
+            async function connectPhantom(buttonElement) {
+                if ('solana' in window) {
+                    const provider = window.solana;
+                    if (provider?.isPhantom) {
+                        try {
+                            // Note: Phantom may prompt on every connect unless trusted DApp settings are used.
+                            const resp = await provider.connect({ onlyIfTrusted: false }); // Change to true if you only want silent connection for trusted apps
+                            const publicKey = resp.publicKey.toString();
+                            console.log("👻 Phantom connected:", publicKey);
+                            updateWalletButtonState(buttonElement, 'phantom', publicKey);
+                            showStatusMessage(`Phantom Connected: ${publicKey.substring(0, 6)}...`, 'success');
+                            hideWalletModal();
+                        } catch (err) {
+                            // Handle possible errors
+                            let message = 'Phantom Connection Error';
+                            if (err.code === 4001) { // User rejected the request
+                                message = 'Connection request rejected.';
+                            } else {
+                                message = err.message || message;
+                            }
+                            console.error("Phantom connect error:", err);
+                            showStatusMessage(message, 'error');
+                            hideWalletModal(); // Hide modal even on error
+                        }
+                    } else {
+                         console.error("Phantom provider found, but isPhantom property not true.");
+                         showStatusMessage("Phantom wallet detected, but might not be ready. Try refreshing.", 'error');
+                         hideWalletModal();
+                    }
+                } else {
+                    console.error("Phantom Wallet not found.");
+                    showStatusMessage("Phantom Wallet not found. Please install the extension.", 'error');
+                    // Optionally redirect to Phantom installation page
+                    // window.open('https://phantom.app/', '_blank');
+                    hideWalletModal(); // Hide modal if not found
+                }
+            }
+
+            // --- Phantom Disconnection (User Provided - Modified) ---
+            function disconnectPhantom(buttonElement) {
+                if (window.solana?.disconnect) {
+                    try {
+                        window.solana.disconnect();
+                        console.log("👻 Phantom disconnected");
+                        updateWalletButtonState(buttonElement, null, null); // Clear state
+                        showStatusMessage("Phantom Disconnected", 'info');
+                        // Phantom fires a 'disconnect' event, which you could listen for
+                        // window.solana.on('disconnect', () => console.log('Phantom disconnect event received'));
+                    } catch (err) {
+                         console.error("Phantom disconnect error:", err);
+                         showStatusMessage("Error disconnecting Phantom.", 'error');
+                    }
+                } else {
+                     console.warn("Phantom disconnect function not available.");
+                     // Still clear the state visually if disconnect fails
+                     updateWalletButtonState(buttonElement, null, null);
+                     showStatusMessage("Could not disconnect Phantom.", 'error');
+                }
+            }
+
+            /** Adds listeners to the wallet modal buttons. */
+            function addWalletModalListeners() {
+                if (connectMetaMaskBtn) {
+                    connectMetaMaskBtn.addEventListener('click', () => {
+                        if (currentWalletButton) {
+                            connectMetaMask(currentWalletButton);
+                        } else {
+                            console.error("No target button specified for MetaMask connection.");
+                            hideWalletModal();
+                        }
+                    });
+                }
+                if (connectPhantomBtn) {
+                    connectPhantomBtn.addEventListener('click', () => {
+                         if (currentWalletButton) {
+                            connectPhantom(currentWalletButton);
+                        } else {
+                            console.error("No target button specified for Phantom connection.");
+                            hideWalletModal();
+                        }
+                    });
+                }
+                // Close modal if clicking overlay
+                if (walletModal) {
+                    walletModal.addEventListener('click', (e) => {
+                        if (e.target === walletModal) { // Check if the click was directly on the overlay
+                            hideWalletModal();
+                        }
+                    });
+                }
+            }
+
+
+            // --- Initialize ---
+            initBuilder();
+            checkCanvasPlaceholder();
+
+        });
+    </script>
+</body>
 </html>
-
-Copy Code
-
-
-
-
-

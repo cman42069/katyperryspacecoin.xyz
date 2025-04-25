@@ -30,18 +30,22 @@
         .top-bar-left { display: flex; align-items: center; gap: 20px; }
         .logo { font-size: 1.4rem; font-weight: 700; color: #D97A33; text-decoration: none; display: flex; align-items: center; gap: 8px; }
         .logo i { font-size: 1.2rem; }
-        .top-bar-right { display: flex; align-items: center; gap: 15px; }
-        .version-info { font-size: 0.9rem; color: #666; padding: 5px 10px; background-color: #f5f5f5; border-radius: 20px; }
+        .top-bar-right { display: flex; align-items: center; gap: 10px; /* Reduced gap slightly */ flex-wrap: wrap; /* Allow wrapping */ justify-content: flex-end; }
+        .version-info { font-size: 0.9rem; color: #666; padding: 5px 10px; background-color: #f5f5f5; border-radius: 20px; white-space: nowrap; }
 
         /* --- Buttons (Keep some base styles, Tailwind can override) --- */
         .btn {
             border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
-            display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; white-space: nowrap; /* Prevent text wrapping */
         }
         .btn-primary { background-color: #D97A33; color: white; box-shadow: 0 2px 5px rgba(217, 122, 51, 0.2); }
         .btn-primary:hover:not(:disabled) { background-color: #c46621; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(217, 122, 51, 0.3); }
         .btn-secondary { background-color: white; color: #D97A33; border: 1px solid #D97A33; }
         .btn-secondary:hover { background-color: #fff8f2; transform: translateY(-1px); }
+        /* Specific style for IPFS button */
+        .btn-ipfs { background-color: #17a2b8; color: white; border: 1px solid #17a2b8; }
+        .btn-ipfs:hover:not(:disabled) { background-color: #138496; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3); }
+
         .btn-icon { padding: 8px; border-radius: 6px; background-color: #f5f5f5; color: #555; border: 1px solid #ddd; }
         .btn-icon:hover { background-color: #eee; color: #D97A33; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
@@ -409,6 +413,10 @@
         .button-group button:hover:not(.active) { background-color: #f9f9f9; }
 
         /* --- Responsive Design --- */
+        @media (max-width: 1100px) { /* Adjusted breakpoint for button text hiding */
+             .top-bar-right .btn span { display: none; } /* Hide button text */
+             .top-bar-right .btn { padding: 8px; } /* Adjust padding for icon-only buttons */
+        }
         @media (max-width: 992px) {
             /* Adjust tab font size for smaller screens */
             .sidebar-tab { font-size: 0.85rem; padding: 10px 8px; }
@@ -422,16 +430,17 @@
             .properties-panel.collapsed { transform: translateX(100%); box-shadow: none; border-left: none; width: 0; min-width: 0; }
             .properties-panel:not(.collapsed) { transform: translateX(0); }
             .builder-canvas-wrapper { padding: 20px; }
+            .top-bar-right { gap: 5px; } /* Further reduce gap */
         }
         @media (max-width: 768px) {
-            .top-bar-left .btn span, .top-bar-right .btn span { display: none; } /* Hide button text */
-            .top-bar-left .btn, .top-bar-right .btn { padding: 8px; } /* Adjust padding for icon-only buttons */
+            .top-bar-left .btn span { display: none; } /* Hide button text */
+            .top-bar-left .btn { padding: 8px; } /* Adjust padding for icon-only buttons */
             .logo span { display: none; } /* Hide logo text */
             /* Hide text in tabs on very small screens */
             .sidebar-tab span { display: none; }
             .sidebar-tab i { margin-right: 0; }
             .sidebar-tab { padding: 10px 5px; }
-            .top-bar-right { gap: 8px; } /* Reduce gap between top-right buttons */
+            .top-bar-right { gap: 5px; } /* Keep reduced gap */
         }
 
         /* --- Default Element Styles (Used in Builder & Preview) --- */
@@ -524,6 +533,25 @@
         #wallet-modal button:disabled span {
              font-size: 0.8rem; /* Smaller font for the message */
         }
+         /* Style for Coinbase button */
+        #connect-coinbase-btn {
+            border-color: #0052FF; /* Coinbase blue */
+            color: #0052FF;
+        }
+        #connect-coinbase-btn:hover:not(:disabled) {
+            background-color: #e6f0ff; /* Lighter blue */
+            border-color: #0041CC; /* Darker blue */
+        }
+        #connect-coinbase-btn:focus {
+             ring-color: #0052FF;
+        }
+        #connect-coinbase-btn svg {
+            width: 1.5rem; /* 24px */
+            height: 1.5rem; /* 24px */
+            margin-right: 0.75rem; /* 12px */
+            fill: #0052FF;
+        }
+
 
         /* --- Status Message Styles (Keep using custom CSS for simplicity) --- */
         #wallet-status-message {
@@ -532,6 +560,8 @@
             border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             z-index: 1002; display: none; /* Hidden by default */
             font-size: 0.9rem; animation: fadeIn 0.3s ease;
+            max-width: 90%; /* Ensure it doesn't overflow on small screens */
+            text-align: center;
         }
         #wallet-status-message.error { background-color: #dc3545; }
         #wallet-status-message.success { background-color: #28a745; }
@@ -549,9 +579,10 @@
             <div class="top-bar-right">
                 <span class="version-info"><i class="fas fa-save"></i> Versions: <strong id="saved-version-count">0</strong> / <strong id="max-version-count">3</strong></span>
                 <button class="btn btn-secondary" id="preview-btn" title="Preview website"><i class="fas fa-eye"></i><span>Preview</span></button>
-                <button class="btn btn-secondary" id="load-version-btn" title="Load a saved version"><i class="fas fa-folder-open"></i><span>Load Version</span></button>
-                <button class="btn btn-primary" id="save-btn" title="Save current design as a version"><i class="fas fa-save"></i><span>Save Version</span></button>
-                <button class="btn btn-primary" id="publish-btn" title="Publish website"><i class="fas fa-rocket"></i><span>Publish</span></button>
+                <button class="btn btn-secondary" id="load-version-btn" title="Load a saved version"><i class="fas fa-folder-open"></i><span>Load</span></button>
+                <button class="btn btn-primary" id="save-btn" title="Save current design as a version"><i class="fas fa-save"></i><span>Save</span></button>
+                <button class="btn btn-ipfs" id="publish-ipfs-btn" title="Publish to IPFS (Simulated)"><i class="fas fa-cloud-upload-alt"></i><span>IPFS</span></button>
+                <button class="btn btn-primary" id="publish-btn" title="Publish website (Not Implemented)"><i class="fas fa-rocket"></i><span>Publish</span></button>
             </div>
         </header>
 
@@ -623,7 +654,7 @@
                                 <div class="tool-item" draggable="true" data-tool="token-balance" style="grid-column: span 2;"><i class="fas fa-coins"></i><span>Token Balance</span></div>
                             </div>
                         </div>
-                    </div>
+                        </div>
                 </div>
             </aside>
 
@@ -737,6 +768,13 @@
                     <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="w-6 h-6 mr-3">
                     <span>Connect MetaMask</span>
                 </button>
+                <button id="connect-coinbase-btn" class="flex items-center justify-center w-full px-4 py-3 rounded-md border font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2">
+                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 0C7.163 0 0 7.163 0 16s7.163 16 16 16 16-7.163 16-16S24.837 0 16 0zm0 29.6C8.49 29.6 2.4 23.51 2.4 16S8.49 2.4 16 2.4s13.6 6.09 13.6 13.6-6.09 13.6-13.6 13.6z"></path>
+                        <path d="M16.537 8.4h-1.074c-3.84 0-6.663 2.823-6.663 6.663v1.874c0 3.84 2.823 6.663 6.663 6.663h1.074c3.84 0 6.663-2.823 6.663-6.663V15.06c0-3.84-2.823-6.663-6.663-6.663zm-.537 12.8c-2.38 0-4.263-1.883-4.263-4.263v-1.874c0-2.38 1.883-4.263 4.263-4.263s4.263 1.883 4.263 4.263v1.874c0 2.38-1.884 4.263-4.263 4.263z"></path>
+                    </svg>
+                    <span>Connect Coinbase Wallet</span>
+                </button>
                 <button id="connect-phantom-btn" class="flex items-center justify-center w-full px-4 py-3 rounded-md border font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 border-purple-400 text-purple-600 hover:bg-purple-50 hover:border-purple-500 focus:ring-purple-400">
                      <i class="fas fa-ghost w-6 h-6 mr-3"></i> <span>Connect Phantom</span>
                 </button>
@@ -755,7 +793,7 @@
             const sidebarResizer = document.getElementById('sidebar-resizer');
             const canvasContainer = document.getElementById('canvas-container');
             const canvasResizerY = document.getElementById('canvas-resizer-y');
-            const toolItems = document.querySelectorAll('.tool-item'); // Includes crypto tools now
+            const toolItems = document.querySelectorAll('.tool-item');
             const propertiesPanel = document.getElementById('properties-panel');
             const closePropertiesBtn = document.getElementById('close-properties');
             const sidebarTabs = document.querySelectorAll('.sidebar-tab');
@@ -766,9 +804,10 @@
             const previewBtn = document.getElementById('preview-btn');
             const undoBtn = document.getElementById('undo-btn');
             const publishBtn = document.getElementById('publish-btn');
-            const loadVersionBtn = document.getElementById('load-version-btn'); // ADDED: Load button ref
-            const savedVersionCountSpan = document.getElementById('saved-version-count'); // ADDED: Version count span
-            const maxVersionCountSpan = document.getElementById('max-version-count'); // ADDED: Max version span
+            const publishIpfsBtn = document.getElementById('publish-ipfs-btn');
+            const loadVersionBtn = document.getElementById('load-version-btn');
+            const savedVersionCountSpan = document.getElementById('saved-version-count');
+            const maxVersionCountSpan = document.getElementById('max-version-count');
             const textColorPreview = document.getElementById('text-color-preview');
             const bgColorPreview = document.getElementById('bg-color-preview');
             const textColorPalette = document.getElementById('text-color-palette');
@@ -789,11 +828,12 @@
             const aiOutputSection = document.getElementById('ai-output-section');
             const aiOutputDisplay = document.getElementById('ai-output-display');
             // --- Crypto Tab Elements ---
-            const cryptoTabContent = document.getElementById('crypto-tab'); // Reference to the new tab content
+            const cryptoTabContent = document.getElementById('crypto-tab');
             // --- Wallet Modal Elements ---
             const walletModal = document.getElementById('wallet-modal');
-            const walletModalContent = document.getElementById('wallet-modal-content'); // Get content div
+            const walletModalContent = document.getElementById('wallet-modal-content');
             const connectMetaMaskBtn = document.getElementById('connect-metamask-btn');
+            const connectCoinbaseBtn = document.getElementById('connect-coinbase-btn'); // ADDED: Coinbase button ref
             const connectPhantomBtn = document.getElementById('connect-phantom-btn');
             const walletStatusMessage = document.getElementById('wallet-status-message');
 
@@ -801,7 +841,7 @@
             let draggedTool = null;
             let selectedElement = null;
             let history = [];
-            let currentVersionsSaved = 0; // This will be updated on load
+            let currentVersionsSaved = 0;
             const MAX_VERSIONS = 3;
             let activePalette = null;
             let currentActiveTab = 'elements';
@@ -817,15 +857,15 @@
             // --- AI State ---
             let selectedAiTool = null;
             // --- Wallet State ---
-            let currentWalletButton = null; // Reference to the button that opened the modal
-            let connectedWalletType = null; // 'metamask' or 'phantom'
-            let connectedAccount = null; // The connected wallet address
-            let isWalletModalOpen = false; // Track modal state for transitions
+            let currentWalletButton = null;
+            let connectedWalletType = null; // 'metamask', 'coinbase', or 'phantom'
+            let connectedAccount = null;
+            let isWalletModalOpen = false;
 
             // --- Configuration ---
             const snapThreshold = 8;
             const defaultImageWidth = 200;
-            const localStorageVersionPrefix = 'website_design_version_'; // Prefix for local storage keys
+            const localStorageVersionPrefix = 'website_design_version_';
 
             // --- Predefined Color Palette ---
             const colorPalette = [
@@ -835,6 +875,7 @@
             ];
 
             // --- Default Element CSS (for preview/code generation) ---
+            // (Keep this block unchanged)
             const defaultElementStyles = `
                 .element-heading { font-weight: 700; color: #333; margin: 0; padding: 5px; }
                 .element-paragraph { color: #555; line-height: 1.5; margin: 0; padding: 5px; }
@@ -914,82 +955,10 @@
             /** Updates the code view panel with the current canvas HTML. */
             function updateCodeView() {
                 if (!isCodeTabActive() || !generatedCodeDisplay || !canvas) return;
-                const previewCanvas = canvas.cloneNode(true);
-                // Remove builder UI elements AND guide lines from the clone
-                previewCanvas.querySelectorAll('.element-controls, .canvas-placeholder, .resize-handle, .guide-line').forEach(el => el.remove());
-                previewCanvas.querySelectorAll('.canvas-element.active').forEach(el => el.classList.remove('active'));
-                previewCanvas.querySelectorAll('.canvas-element').forEach(el => {
-                    el.removeAttribute('draggable');
-                    el.style.cursor = 'default';
-                    el.style.border = '';
-                    el.style.boxShadow = '';
-                    el.classList.remove('dragging');
-                    // Remove data attributes used by builder
-                    delete el.dataset.aspectRatio;
-                    delete el.dataset.toolType; // Remove tool type identifier
-                    delete el.dataset.connectedWallet; // Remove wallet state
-                    delete el.dataset.connectedAccount;
-                });
-                previewCanvas.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
-                // Convert standard buttons to links
-                previewCanvas.querySelectorAll('button.element-button[data-href]').forEach(btn => {
-                    const link = btn.getAttribute('data-href'); const target = btn.getAttribute('data-target') || '_self';
-                    if (link && link !== '#') {
-                        const anchor = document.createElement('a'); anchor.href = link; anchor.target = target; anchor.textContent = btn.textContent;
-                        anchor.className = Array.from(btn.classList).filter(cls => cls.startsWith('element-')).join(' '); anchor.classList.add('preview-button-link');
-                        const stylesToCopy = ['color', 'background-color', 'font-family', 'font-size', 'font-weight', 'text-align', 'padding', 'border-radius', 'margin', 'display', 'width', 'height'];
-                        stylesToCopy.forEach(styleProp => { if (btn.style[styleProp]) anchor.style[styleProp] = btn.style[styleProp]; });
-                        btn.parentNode.replaceChild(anchor, btn);
-                    } else { btn.removeAttribute('data-href'); btn.removeAttribute('data-target'); }
-                });
-                // Keep crypto buttons as buttons but remove onclick/data attributes
-                previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
-                    // ** MODIFICATION: Remove the onclick attribute removal here, as it's handled by addEventListener now **
-                    // btn.removeAttribute('onclick');
-                    btn.removeAttribute('data-connected-wallet');
-                    btn.removeAttribute('data-connected-account');
-                    // You might want to add placeholder text or disable them in the static code view
-                    // btn.textContent = 'Connect Wallet (Preview)';
-                    // btn.disabled = true;
-                });
-                previewCanvas.querySelectorAll('.element-columns > div').forEach(col => { col.style.border = ''; });
-                previewCanvas.querySelectorAll('.element-spacer').forEach(sp => { sp.style.background = ''; sp.style.opacity = ''; });
-                let generatedBodyHtml = formatHtml(previewCanvas.innerHTML);
-                const canvasHeight = canvas.style.height || '800px';
-                // Construct the full HTML, ensuring default styles are included
-                const fullHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Generated Website</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        .website-container {
-            position: relative; /* Needed for absolute positioning of elements */
-            max-width: 1200px; /* Match canvas max-width */
-            height: ${canvasHeight}; /* Use the actual canvas height */
-            margin: 20px auto; /* Center the container */
-            padding: 20px; /* Add some padding */
-            border: 1px solid #eee; /* Optional border */
-            overflow: hidden; /* Prevent overflow */
-        }
-        ${defaultElementStyles}
-        /* Ensure elements remain absolutely positioned in the final output */
-        /* .canvas-element styles are included in defaultElementStyles */
-    </style>
-</head>
-<body>
-    <div class="website-container">
-${generatedBodyHtml}
-    </div>
-    </body>
-</html>`;
+                const previewHtml = generateFullHtmlForPreview(true); // Pass flag to get full HTML for code view
                 const codeBlock = generatedCodeDisplay.querySelector('code');
-                if (codeBlock) { codeBlock.textContent = fullHtml; } else { generatedCodeDisplay.textContent = fullHtml; }
+                if (codeBlock) { codeBlock.textContent = previewHtml; }
+                else { generatedCodeDisplay.textContent = previewHtml; }
             }
 
             /** Saves the current canvas state (HTML only) to the history stack. */
@@ -1027,14 +996,14 @@ ${generatedBodyHtml}
 
             /** Initializes the builder interface and event listeners. */
             function initBuilder() {
-                updateSavedVersionCount(); // ADDED: Update count on initial load
+                updateSavedVersionCount();
                 populateColorPalettes();
                 addPaletteEventListeners();
                 setupCanvasElements();
-                addToolItemListeners(); // Will now include crypto tools
+                addToolItemListeners();
                 addCanvasListeners();
                 addPropertiesPanelListeners();
-                addTopBarButtonListeners(); // Includes save, preview, undo, publish, AND load
+                addTopBarButtonListeners(); // Includes IPFS button listener now
                 addSidebarTabListeners();
                 addSidebarSectionToggleListeners();
                 addDeviceButtonListeners();
@@ -1043,7 +1012,7 @@ ${generatedBodyHtml}
                 addSidebarResizerListeners();
                 addCanvasResizerListeners();
                 addAiToolListeners();
-                addWalletModalListeners(); // Add listeners for the new modal
+                addWalletModalListeners(); // Includes Coinbase listener now
                 document.addEventListener('mousemove', handleDocumentMouseMove); document.addEventListener('mouseup', handleDocumentMouseUp);
                 setTimeout(() => { saveToHistory(); if (undoBtn) undoBtn.disabled = true; updateCodeView(); }, 0); // Save initial state
                 if (window.innerWidth < 992 && propertiesPanel) { propertiesPanel.classList.add('collapsed'); }
@@ -1058,6 +1027,7 @@ ${generatedBodyHtml}
                 let contentHtml = ''; let initialWidth = 'auto'; let initialHeight = 'auto';
                 let isImageElement = false;
 
+                // (Keep the switch statement unchanged)
                 switch (type) {
                     // --- Basic Elements ---
                     case 'heading': contentHtml = '<h2 class="element-heading" contenteditable="true">Heading</h2>'; initialWidth = '200px'; break;
@@ -1084,10 +1054,8 @@ ${generatedBodyHtml}
                         initialWidth = '200px'; initialHeight = '200px';
                         break;
                     case 'wallet-connect':
-                        // ** MODIFICATION: Removed onclick attribute **
                         contentHtml = `<button class="element-wallet-button">Connect Wallet</button>`;
-                        initialWidth = '180px'; // Give it a default width
-                        initialHeight = '40px'; // Give it a default height
+                        initialWidth = '180px'; initialHeight = '40px';
                         break;
                     case 'token-balance':
                         contentHtml = `<div class="element-token-balance"><span contenteditable="false">Token: SOL</span> <span contenteditable="false">Balance: --</span></div>`;
@@ -1100,7 +1068,7 @@ ${generatedBodyHtml}
                 elementWrapper.style.width = initialWidth;
                 elementWrapper.style.height = initialHeight;
 
-                // Add controls (excluding for wallet button for now, simplicity)
+                // Add controls (unchanged logic)
                  if (type !== 'wallet-connect') {
                     const controls = document.createElement('div');
                     controls.className = 'element-controls';
@@ -1110,13 +1078,10 @@ ${generatedBodyHtml}
                         <button class="delete-btn" title="Delete Element"><i class="fas fa-trash"></i></button>
                     `;
                     elementWrapper.appendChild(controls);
-
-                    // Add resize handle (excluding for wallet button)
                     const resizeHandleBR = document.createElement('div');
                     resizeHandleBR.className = 'resize-handle br';
                     elementWrapper.appendChild(resizeHandleBR);
                  } else {
-                     // For wallet button, add simpler controls (move/delete)
                      const controls = document.createElement('div');
                      controls.className = 'element-controls';
                      controls.innerHTML = `
@@ -1124,11 +1089,9 @@ ${generatedBodyHtml}
                          <button class="delete-btn" title="Delete Element"><i class="fas fa-trash"></i></button>
                      `;
                      elementWrapper.appendChild(controls);
-                     // No resize handle for the wallet button
                  }
 
-
-                // Image load handling
+                // Image load handling (unchanged)
                 if (isImageElement) {
                     const imgTag = elementWrapper.querySelector('img.element-image');
                     if (imgTag) {
@@ -1145,6 +1108,7 @@ ${generatedBodyHtml}
 
             /** Attaches necessary event listeners to canvas elements. */
             function setupCanvasElements() {
+                // (Keep this function unchanged)
                 if (!canvas) return;
                 const elements = canvas.querySelectorAll(':scope > .canvas-element');
                 elements.forEach(element => {
@@ -1166,17 +1130,15 @@ ${generatedBodyHtml}
 
                     const deleteBtn = element.querySelector('.delete-btn');
                     if (deleteBtn) {
-                         // Ensure only one listener exists
                         const deleteHandler = (e) => deleteElement(e);
-                        deleteBtn.removeEventListener('click', deleteHandler); // Remove previous potential listener
+                        deleteBtn.removeEventListener('click', deleteHandler);
                         deleteBtn.addEventListener('click', deleteHandler);
                     }
 
                     const editBtn = element.querySelector('.edit-btn');
                     if (editBtn) {
-                         // Ensure only one listener exists
                         const editHandler = (e) => editElement(e);
-                        editBtn.removeEventListener('click', editHandler); // Remove previous potential listener
+                        editBtn.removeEventListener('click', editHandler);
                         editBtn.addEventListener('click', editHandler);
                     }
 
@@ -1193,24 +1155,19 @@ ${generatedBodyHtml}
                     const imgTag = element.querySelector('img.element-image');
                     if (imgTag) {
                         const imageLoadHandler = () => handleImageLoad(imgTag, element);
-                        imgTag.removeEventListener('load', imageLoadHandler); // Remove old listener
+                        imgTag.removeEventListener('load', imageLoadHandler);
                         imgTag.addEventListener('load', imageLoadHandler);
                         if (imgTag.complete && imgTag.naturalWidth > 0) { handleImageLoad(imgTag, element); }
                     }
 
-                    // --- ** MODIFICATION: Wallet Button Listener using addEventListener ** ---
+                    // --- Wallet Button Listener using addEventListener ---
                     const walletButton = element.querySelector('.element-wallet-button');
                     if (walletButton) {
-                        // Define the handler function separately to allow removal
                         const walletClickHandler = () => handleWalletButtonClick(walletButton);
-                        // Remove any previous listener attached this way to prevent duplicates
                         walletButton.removeEventListener('click', walletClickHandler);
-                        // Add the listener
                         walletButton.addEventListener('click', walletClickHandler);
-                        // Also clear any potential inline onclick attribute just in case
                         walletButton.onclick = null;
                     }
-                    // --- ** END MODIFICATION ** ---
                 });
             }
 
@@ -1266,12 +1223,11 @@ ${generatedBodyHtml}
 
             /** Updates the properties panel based on the selected element. */
             function updatePropertiesPanel() {
+                 // (Keep this function unchanged)
                  if (!propertiesPanel) return;
-                 // Hide all groups initially
                  propertiesPanel.querySelectorAll('.property-group').forEach(group => group.style.display = 'none');
 
                  if (selectedElement) {
-                    // Get references to common input fields
                     const textContentInput = document.getElementById('text-content');
                     const fontFamilySelect = document.getElementById('font-family');
                     const fontSizeSelect = document.getElementById('font-size');
@@ -1286,213 +1242,119 @@ ${generatedBodyHtml}
                     const buttonTextInput = document.getElementById('button-text');
                     const buttonLinkInput = document.getElementById('button-link');
                     const targetOptionBtns = document.querySelectorAll('.target-option');
-                    // --- ADDED: Crypto property inputs ---
                     const nftContractInput = document.getElementById('nft-contract');
                     const nftTokenIdInput = document.getElementById('nft-tokenid');
                     const tokenSymbolInput = document.getElementById('token-symbol');
 
-                    // Find relevant inner elements for styling
                     const innerContentElement = selectedElement.querySelector('h1, h2, h3, h4, h5, h6, p, button, span, img, a, i, label, div.element-icon span, nav, section, footer, div.element-nft-display, div.element-token-balance') || selectedElement;
                     const editableElement = selectedElement.querySelector('[contenteditable="true"]') || innerContentElement;
-                    const layoutElement = selectedElement; // The main .canvas-element div
+                    const layoutElement = selectedElement;
 
-                    // Get computed styles for fallback
-                    const computedStyleEditable = window.getComputedStyle(innerContentElement); // Use innerContentElement for text styles
+                    const computedStyleEditable = window.getComputedStyle(innerContentElement);
                     const computedStyleLayout = window.getComputedStyle(layoutElement);
-
-                    // Helper to get style (inline first, then computed)
                     const getStyleValue = (element, computed, prop) => element.style[prop] || computed[prop];
 
-                    // --- Populate Appearance Group (Always Visible for selected) ---
+                    // Appearance Group
                     const appearanceGroup = propertiesPanel.querySelectorAll('.property-group')[1];
                     if (appearanceGroup) {
                         appearanceGroup.style.display = 'block';
                         if (fontFamilySelect) fontFamilySelect.value = getStyleValue(innerContentElement, computedStyleEditable, 'fontFamily').replace(/['"]/g, '');
                         if (fontSizeSelect) fontSizeSelect.value = getStyleValue(innerContentElement, computedStyleEditable, 'fontSize');
-                        if (textColorInput && textColorPreview) {
-                            const color = rgbToHex(getStyleValue(innerContentElement, computedStyleEditable, 'color')) || '#333333';
-                            textColorInput.value = color;
-                            updateColorPreview(textColorPreview, color);
-                        }
-                        if (bgColorInput && bgColorPreview) {
-                            const bgColorComputed = getStyleValue(layoutElement, computedStyleLayout, 'backgroundColor');
-                            const bgColor = (bgColorComputed === 'rgba(0, 0, 0, 0)' || bgColorComputed === 'transparent') ? 'transparent' : rgbToHex(bgColorComputed);
-                            bgColorInput.value = bgColor;
-                            updateColorPreview(bgColorPreview, bgColor);
-                        }
-                        if (textAlignBtns) {
-                            const currentAlign = getStyleValue(innerContentElement, computedStyleEditable, 'textAlign');
-                            textAlignBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.align === currentAlign));
-                        }
+                        if (textColorInput && textColorPreview) { const color = rgbToHex(getStyleValue(innerContentElement, computedStyleEditable, 'color')) || '#333333'; textColorInput.value = color; updateColorPreview(textColorPreview, color); }
+                        if (bgColorInput && bgColorPreview) { const bgColorComputed = getStyleValue(layoutElement, computedStyleLayout, 'backgroundColor'); const bgColor = (bgColorComputed === 'rgba(0, 0, 0, 0)' || bgColorComputed === 'transparent') ? 'transparent' : rgbToHex(bgColorComputed); bgColorInput.value = bgColor; updateColorPreview(bgColorPreview, bgColor); }
+                        if (textAlignBtns) { const currentAlign = getStyleValue(innerContentElement, computedStyleEditable, 'textAlign'); textAlignBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.align === currentAlign)); }
                     }
 
-                    // --- Populate Layout & Position Group (Always Visible for selected) ---
+                    // Layout & Position Group
                     const layoutGroup = propertiesPanel.querySelectorAll('.property-group')[2];
-                    if (layoutGroup) {
-                        layoutGroup.style.display = 'block';
-                        updatePropertiesPanelPosition();
-                        if (widthInput) widthInput.value = layoutElement.style.width || '';
-                        if (heightInput) heightInput.value = layoutElement.style.height || '';
-                    }
+                    if (layoutGroup) { layoutGroup.style.display = 'block'; updatePropertiesPanelPosition(); if (widthInput) widthInput.value = layoutElement.style.width || ''; if (heightInput) heightInput.value = layoutElement.style.height || ''; }
 
-                    // --- Populate Specific Groups Based on Element Type ---
+                    // Specific Groups
                     const toolType = selectedElement.dataset.toolType;
-
-                    // Text Content Group
                     const textPropGroup = document.getElementById('text-properties');
                     const isTextEditable = editableElement.getAttribute('contenteditable') === 'true';
-                    if (isTextEditable && textContentInput && textPropGroup) {
-                        textContentInput.value = editableElement.innerText?.trim() || '';
-                        textPropGroup.style.display = 'block';
-                    }
+                    if (isTextEditable && textContentInput && textPropGroup) { textContentInput.value = editableElement.innerText?.trim() || ''; textPropGroup.style.display = 'block'; }
 
-                    // Image Settings Group
                     const imagePropGroup = document.getElementById('image-properties');
                     const imageElement = selectedElement.querySelector('img.element-image');
-                    if (toolType === 'image' && imageElement && imageSrcInput && imageAltInput && imageAspectLock && imagePropGroup) {
-                        imagePropGroup.style.display = 'block';
-                        imageSrcInput.value = imageElement.getAttribute('src') || '';
-                        imageAltInput.value = imageElement.alt || '';
-                        imageAspectLock.checked = selectedElement.dataset.aspectLock !== 'false';
-                    }
+                    if (toolType === 'image' && imageElement && imageSrcInput && imageAltInput && imageAspectLock && imagePropGroup) { imagePropGroup.style.display = 'block'; imageSrcInput.value = imageElement.getAttribute('src') || ''; imageAltInput.value = imageElement.alt || ''; imageAspectLock.checked = selectedElement.dataset.aspectLock !== 'false'; }
 
-                    // Button Settings Group
                     const buttonPropGroup = document.getElementById('button-properties');
                     const buttonElement = selectedElement.querySelector('button.element-button');
-                    if (toolType === 'button' && buttonElement && buttonTextInput && buttonLinkInput && targetOptionBtns.length > 0 && buttonPropGroup) {
-                        buttonPropGroup.style.display = 'block';
-                        buttonTextInput.value = buttonElement.textContent || '';
-                        buttonLinkInput.value = buttonElement.getAttribute('data-href') || '#';
-                        const target = buttonElement.getAttribute('data-target') || '_self';
-                        targetOptionBtns.forEach(option => option.classList.toggle('active', option.getAttribute('data-target') === target));
-                    }
+                    if (toolType === 'button' && buttonElement && buttonTextInput && buttonLinkInput && targetOptionBtns.length > 0 && buttonPropGroup) { buttonPropGroup.style.display = 'block'; buttonTextInput.value = buttonElement.textContent || ''; buttonLinkInput.value = buttonElement.getAttribute('data-href') || '#'; const target = buttonElement.getAttribute('data-target') || '_self'; targetOptionBtns.forEach(option => option.classList.toggle('active', option.getAttribute('data-target') === target)); }
 
-                    // --- ADDED: Crypto Properties ---
                     const nftPropGroup = document.getElementById('nft-properties');
-                    if (toolType === 'nft-display' && nftContractInput && nftTokenIdInput && nftPropGroup) {
-                        nftPropGroup.style.display = 'block';
-                        // Populate with actual values if stored (e.g., on element data attributes)
-                        nftContractInput.value = selectedElement.dataset.nftContract || '';
-                        nftTokenIdInput.value = selectedElement.dataset.nftTokenId || '';
-                    }
+                    if (toolType === 'nft-display' && nftContractInput && nftTokenIdInput && nftPropGroup) { nftPropGroup.style.display = 'block'; nftContractInput.value = selectedElement.dataset.nftContract || ''; nftTokenIdInput.value = selectedElement.dataset.nftTokenId || ''; }
 
                     const tokenPropGroup = document.getElementById('token-properties');
-                    if (toolType === 'token-balance' && tokenSymbolInput && tokenPropGroup) {
-                        tokenPropGroup.style.display = 'block';
-                        // Populate with actual values if stored
-                        tokenSymbolInput.value = selectedElement.dataset.tokenSymbol || 'SOL'; // Default to SOL
-                    }
-
-                    // Wallet Connect Button - No specific properties needed in the panel for now
-                    if (toolType === 'wallet-connect') {
-                        // Maybe show a status or the connected address here in the future
-                    }
+                    if (toolType === 'token-balance' && tokenSymbolInput && tokenPropGroup) { tokenPropGroup.style.display = 'block'; tokenSymbolInput.value = selectedElement.dataset.tokenSymbol || 'SOL'; }
 
                  } else {
-                     // No element selected, ensure panel is collapsed on smaller screens
-                     if (propertiesPanel && window.innerWidth < 992) {
-                         propertiesPanel.classList.add('collapsed');
-                     }
+                     if (propertiesPanel && window.innerWidth < 992) { propertiesPanel.classList.add('collapsed'); }
                  }
             }
 
             /** Converts RGB or RGBA color string to Hex format. */
             function rgbToHex(rgb) {
-                // (Conversion logic remains the same)
+                // (Keep this function unchanged)
                 if (!rgb || typeof rgb !== 'string') return rgb;
                 rgb = rgb.toLowerCase().trim();
                 if (rgb === 'transparent' || rgb === 'rgba(0, 0, 0, 0)') return 'transparent';
                 if (/^#[0-9a-f]{3,6}$/.test(rgb)) return rgb;
                 const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
                 if (!match) return rgb;
-                try {
-                    const r = parseInt(match[1]).toString(16).padStart(2, '0');
-                    const g = parseInt(match[2]).toString(16).padStart(2, '0');
-                    const b = parseInt(match[3]).toString(16).padStart(2, '0');
-                    return `#${r}${g}${b}`;
-                } catch (e) { return rgb; }
+                try { const r = parseInt(match[1]).toString(16).padStart(2, '0'); const g = parseInt(match[2]).toString(16).padStart(2, '0'); const b = parseInt(match[3]).toString(16).padStart(2, '0'); return `#${r}${g}${b}`; } catch (e) { return rgb; }
             }
 
             /** Updates the background of a color preview swatch. */
             function updateColorPreview(previewElement, colorValue) {
-                // (Preview logic remains the same)
+                // (Keep this function unchanged)
                 if (!previewElement) return;
-                if (colorValue === 'transparent') {
-                    previewElement.style.backgroundColor = '';
-                    previewElement.style.backgroundImage = 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)';
-                    previewElement.style.backgroundSize = '10px 10px';
-                    previewElement.style.backgroundPosition = '0 0, 0 5px, 5px -5px, -5px 0px';
-                } else {
-                    previewElement.style.backgroundImage = 'none';
-                    previewElement.style.backgroundColor = colorValue;
-                }
+                if (colorValue === 'transparent') { previewElement.style.backgroundColor = ''; previewElement.style.backgroundImage = 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)'; previewElement.style.backgroundSize = '10px 10px'; previewElement.style.backgroundPosition = '0 0, 0 5px, 5px -5px, -5px 0px'; }
+                else { previewElement.style.backgroundImage = 'none'; previewElement.style.backgroundColor = colorValue; }
             }
 
             /** Handles the start of dragging a tool from the sidebar. */
             function handleToolDragStart(e) {
-                // (Drag start logic remains the same)
-                const toolType = e.target.getAttribute('data-tool');
-                if (!toolType) { e.preventDefault(); return; }
-                e.dataTransfer.setData('text/tool-type', toolType);
-                e.dataTransfer.effectAllowed = 'copy';
-                draggedTool = e.target;
-                draggedTool.classList.add('dragging-tool');
+                // (Keep this function unchanged)
+                const toolType = e.target.getAttribute('data-tool'); if (!toolType) { e.preventDefault(); return; }
+                e.dataTransfer.setData('text/tool-type', toolType); e.dataTransfer.effectAllowed = 'copy';
+                draggedTool = e.target; draggedTool.classList.add('dragging-tool');
             }
 
             /** Handles the end of dragging a tool from the sidebar. */
             function handleToolDragEnd(e) {
-                // (Drag end logic remains the same)
-                if(draggedTool) draggedTool.classList.remove('dragging-tool');
-                draggedTool = null;
+                // (Keep this function unchanged)
+                if(draggedTool) draggedTool.classList.remove('dragging-tool'); draggedTool = null;
                 if (canvas) canvas.classList.remove('drag-over');
             }
 
             /** Adds drag & drop listeners to the main canvas area. */
             function addCanvasListeners() {
+                // (Keep this function unchanged)
                 if (!canvas) return;
-                canvas.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    const isTool = e.dataTransfer.types.includes('text/tool-type');
-                    if (isTool) { e.dataTransfer.dropEffect = 'copy'; canvas.classList.add('drag-over'); }
-                    else { e.dataTransfer.dropEffect = 'none'; }
-                });
-                canvas.addEventListener('dragleave', (e) => {
-                    if (e.target === canvas && !canvas.contains(e.relatedTarget)) { canvas.classList.remove('drag-over'); }
-                });
+                canvas.addEventListener('dragover', (e) => { e.preventDefault(); const isTool = e.dataTransfer.types.includes('text/tool-type'); if (isTool) { e.dataTransfer.dropEffect = 'copy'; canvas.classList.add('drag-over'); } else { e.dataTransfer.dropEffect = 'none'; } });
+                canvas.addEventListener('dragleave', (e) => { if (e.target === canvas && !canvas.contains(e.relatedTarget)) { canvas.classList.remove('drag-over'); } });
                 canvas.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    canvas.classList.remove('drag-over');
+                    e.preventDefault(); canvas.classList.remove('drag-over');
                     const toolType = e.dataTransfer.getData('text/tool-type');
                     if (toolType) {
-                        saveToHistory();
-                        const newElement = createElementFromTool(toolType);
-                        const canvasRect = canvas.getBoundingClientRect();
-                        const canvasWrapper = document.querySelector('.builder-canvas-wrapper');
-                        const scrollLeft = canvasWrapper.scrollLeft;
-                        const scrollTop = canvasWrapper.scrollTop;
-                        let dropX = e.clientX - canvasRect.left + scrollLeft;
-                        let dropY = e.clientY - canvasRect.top + scrollTop;
+                        saveToHistory(); const newElement = createElementFromTool(toolType);
+                        const canvasRect = canvas.getBoundingClientRect(); const canvasWrapper = document.querySelector('.builder-canvas-wrapper');
+                        const scrollLeft = canvasWrapper.scrollLeft; const scrollTop = canvasWrapper.scrollTop;
+                        let dropX = e.clientX - canvasRect.left + scrollLeft; let dropY = e.clientY - canvasRect.top + scrollTop;
                         const isImage = newElement.querySelector('img.element-image');
-                        let elemWidth = parseInt(newElement.style.width) || (isImage ? defaultImageWidth : 100);
-                        let elemHeight = parseInt(newElement.style.height) || 50;
+                        let elemWidth = parseInt(newElement.style.width) || (isImage ? defaultImageWidth : 100); let elemHeight = parseInt(newElement.style.height) || 50;
                         dropX -= elemWidth / 2; dropY -= elemHeight / 2;
-                        dropX = Math.max(0, Math.min(dropX, canvas.offsetWidth - elemWidth));
-                        dropY = Math.max(0, Math.min(dropY, canvas.offsetHeight - elemHeight));
-                        newElement.style.position = 'absolute';
-                        newElement.style.left = `${dropX}px`;
-                        newElement.style.top = `${dropY}px`;
-                        checkCanvasPlaceholder(true);
-                        canvas.appendChild(newElement);
-                        setupCanvasElements(); // Ensure listeners are attached
-                        setSelectedElement(newElement);
+                        dropX = Math.max(0, Math.min(dropX, canvas.offsetWidth - elemWidth)); dropY = Math.max(0, Math.min(dropY, canvas.offsetHeight - elemHeight));
+                        newElement.style.position = 'absolute'; newElement.style.left = `${dropX}px`; newElement.style.top = `${dropY}px`;
+                        checkCanvasPlaceholder(true); canvas.appendChild(newElement);
+                        setupCanvasElements(); setSelectedElement(newElement);
                         if (isImage) { applyPropertyChange('image-src', `https://placehold.co/600x400/FFF4E7/D97A33?text=Image`, newElement); }
-
                     }
                     draggedTool = null;
                 });
-                canvas.addEventListener('click', (e) => {
-                    if (e.target === canvas) { setSelectedElement(null); }
-                });
+                canvas.addEventListener('click', (e) => { if (e.target === canvas) { setSelectedElement(null); } });
             }
 
             // --- Mousedown Handlers ---
@@ -1511,9 +1373,7 @@ ${generatedBodyHtml}
                 if (element.classList.contains('centered-v') || element.classList.contains('centered-hv')) { const visualTop = (canvas.offsetHeight / 2) - (element.offsetHeight / 2); dragOffsetY = (e.clientY - canvasRect.top + scrollTop) - visualTop; }
             }
             function handleElementSelectionMouseDown(e) { /* ... (unchanged) ... */
-                if (e.target.closest('.element-controls') || e.target.classList.contains('resize-handle') || e.target.closest('[contenteditable="true"]') || e.target.closest('.element-wallet-button')) { // Ignore clicks on wallet button itself
-                    return;
-                }
+                if (e.target.closest('.element-controls') || e.target.classList.contains('resize-handle') || e.target.closest('[contenteditable="true"]') || e.target.closest('.element-wallet-button')) { return; }
                 const element = e.currentTarget; setSelectedElement(element); e.stopPropagation();
             }
             function handleResizeMouseDown(e) { /* ... (unchanged) ... */
@@ -1601,11 +1461,11 @@ ${generatedBodyHtml}
 
             /** Adds drag listeners to sidebar tool items (including new crypto ones). */
             function addToolItemListeners() {
-                // Select ALL tool items from ALL tabs
+                // (Keep this function unchanged)
                 const allToolItems = document.querySelectorAll('.tool-item');
                 if (allToolItems) {
                     allToolItems.forEach(item => {
-                        item.removeEventListener('dragstart', handleToolDragStart); // Remove first to prevent duplicates
+                        item.removeEventListener('dragstart', handleToolDragStart);
                         item.removeEventListener('dragend', handleToolDragEnd);
                         item.addEventListener('dragstart', handleToolDragStart);
                         item.addEventListener('dragend', handleToolDragEnd);
@@ -1615,29 +1475,28 @@ ${generatedBodyHtml}
 
             /** Adds listeners to properties panel inputs/controls. */
             function addPropertiesPanelListeners() {
-                // (Listeners remain the same, applyPropertyChange handles different types)
+                // (Keep this function unchanged)
                 if (!propertiesPanel) return;
                 if (closePropertiesBtn) { closePropertiesBtn.addEventListener('click', () => { propertiesPanel.classList.add('collapsed'); }); }
                 propertiesPanel.addEventListener('change', (e) => { if (!selectedElement) return; const target = e.target; if (target.tagName === 'SELECT' || target.type === 'checkbox') { const property = target.id || target.name; const value = target.type === 'checkbox' ? target.checked : target.value; if (property) { applyPropertyChange(property, value); saveToHistory(); } } });
-                propertiesPanel.addEventListener('input', (e) => { if (!selectedElement) return; const target = e.target; const property = target.id || target.name; const value = target.value; if (property && ['text-content', 'image-src', 'image-alt', 'button-text', 'button-link', 'pos-left', 'pos-top', 'width', 'height', 'text-color', 'background-color', 'nft-contract', 'nft-tokenid', 'token-symbol'].includes(property)) { applyPropertyChange(property, value); } }); // Added crypto props
+                propertiesPanel.addEventListener('input', (e) => { if (!selectedElement) return; const target = e.target; const property = target.id || target.name; const value = target.value; if (property && ['text-content', 'image-src', 'image-alt', 'button-text', 'button-link', 'pos-left', 'pos-top', 'width', 'height', 'text-color', 'background-color', 'nft-contract', 'nft-tokenid', 'token-symbol'].includes(property)) { applyPropertyChange(property, value); } });
                 propertiesPanel.addEventListener('focusout', (e) => { if (!selectedElement) return; const target = e.target; if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') { applyPropertyChange(target.id || target.name, target.value); saveToHistory(); } });
                 propertiesPanel.addEventListener('click', (e) => { if (!selectedElement) return; const swatch = e.target.closest('.color-swatch'); if (swatch) { e.stopPropagation(); handleSwatchClick(swatch); return; } const textAlignButton = e.target.closest('.text-align'); if (textAlignButton) { const align = textAlignButton.dataset.align; applyPropertyChange('text-align', align); document.querySelectorAll('#text-align-group .text-align').forEach(b => b.classList.remove('active')); textAlignButton.classList.add('active'); saveToHistory(); return; } const targetOptionButton = e.target.closest('.target-option'); if (targetOptionButton) { const target = targetOptionButton.dataset.target; applyPropertyChange('target', target); document.querySelectorAll('#target-option-group .target-option').forEach(b => b.classList.remove('active')); targetOptionButton.classList.add('active'); saveToHistory(); return; } });
             }
 
              /** Applies property change, handling "Center", relative units, and image aspect ratio. */
              function applyPropertyChange(property, value, element = selectedElement) {
+                 // (Keep this function unchanged)
                  if (!element) return;
 
-                 // Find relevant inner elements
                  const innerContentElement = element.querySelector('h1, h2, h3, h4, h5, h6, p, button, span, img, a, i, label, div.element-icon span, nav, section, footer, div.element-nft-display, div.element-token-balance') || element;
                  const editableElement = element.querySelector('[contenteditable="true"]') || innerContentElement;
-                 const layoutElement = element; // The main .canvas-element div
+                 const layoutElement = element;
 
                  const isValidSizeOrPosValue = (val) => { val = String(val).trim().toLowerCase(); return /^\d+(\.\d+)?(px|%|vw|vh|em|rem)?$/.test(val) || val === 'auto' || val === 'center'; };
                  const formatSizeOrPosValue = (val) => { val = String(val).trim().toLowerCase(); if (val === 'auto' || val === 'center' || /%|vw|vh|em|rem|px$/.test(val)) { return val; } else if (/^\d+(\.\d+)?$/.test(val)) { return `${val}px`; } return ''; };
 
                  switch (property) {
-                     // --- Standard Properties (mostly unchanged) ---
                      case 'text-content': if (editableElement.getAttribute('contenteditable') === 'true') editableElement.innerText = value; break;
                      case 'button-text': const btnTextEl = element.querySelector('button.element-button'); if(btnTextEl && btnTextEl.getAttribute('contenteditable') === 'true') btnTextEl.textContent = value; break;
                      case 'font-family': innerContentElement.style.fontFamily = value; break;
@@ -1645,50 +1504,39 @@ ${generatedBodyHtml}
                      case 'text-color': innerContentElement.style.color = value; updateColorPreview(document.getElementById('text-color-preview'), value); break;
                      case 'background-color': layoutElement.style.backgroundColor = value; updateColorPreview(document.getElementById('bg-color-preview'), value); break;
                      case 'text-align': innerContentElement.style.textAlign = value; break;
-                     case 'pos-left': /* ... (unchanged centering/positioning logic) ... */
+                     case 'pos-left':
                          value = String(value).trim().toLowerCase();
                          if (value === 'center') { layoutElement.classList.add('centered-h'); layoutElement.style.left = ''; if(layoutElement.classList.contains('centered-v') || layoutElement.classList.contains('centered-hv')) { layoutElement.classList.add('centered-hv'); layoutElement.classList.remove('centered-h', 'centered-v'); layoutElement.style.transform = 'translate(-50%, -50%)'; } else { layoutElement.classList.remove('centered-hv', 'centered-v'); layoutElement.style.transform = 'translateX(-50%)'; } }
                          else if (isValidSizeOrPosValue(value)) { layoutElement.classList.remove('centered-h', 'centered-hv'); layoutElement.style.left = formatSizeOrPosValue(value); layoutElement.style.transform = layoutElement.style.transform.replace(/translateX\([^)]+\)/, '').trim(); if(layoutElement.classList.contains('centered-v')) { layoutElement.style.transform = 'translateY(-50%)'; } }
                          break;
-                     case 'pos-top': /* ... (unchanged centering/positioning logic) ... */
+                     case 'pos-top':
                          value = String(value).trim().toLowerCase();
                          if (value === 'center') { layoutElement.classList.add('centered-v'); layoutElement.style.top = ''; if(layoutElement.classList.contains('centered-h') || layoutElement.classList.contains('centered-hv')) { layoutElement.classList.add('centered-hv'); layoutElement.classList.remove('centered-h', 'centered-v'); layoutElement.style.transform = 'translate(-50%, -50%)'; } else { layoutElement.classList.remove('centered-hv', 'centered-h'); layoutElement.style.transform = 'translateY(-50%)'; } }
                          else if (isValidSizeOrPosValue(value)) { layoutElement.classList.remove('centered-v', 'centered-hv'); layoutElement.style.top = formatSizeOrPosValue(value); layoutElement.style.transform = layoutElement.style.transform.replace(/translateY\([^)]+\)/, '').trim(); if(layoutElement.classList.contains('centered-h')) { layoutElement.style.transform = 'translateX(-50%)'; } }
                          break;
-                     case 'width': /* ... (unchanged size logic with aspect ratio check) ... */
+                     case 'width':
                          value = String(value).trim().toLowerCase();
                          if (isValidSizeOrPosValue(value)) { const newWidth = formatSizeOrPosValue(value); layoutElement.style.width = newWidth; const img = layoutElement.querySelector('img.element-image'); const aspectLock = layoutElement.dataset.aspectLock !== 'false'; const currentAspectRatio = parseFloat(layoutElement.dataset.aspectRatio); if (img && aspectLock && currentAspectRatio > 0 && newWidth !== 'auto' && layoutElement.style.height !== 'auto') { const widthValue = parseFloat(newWidth); if (!isNaN(widthValue) && widthValue > 0) { layoutElement.style.height = `${widthValue * currentAspectRatio}px`; updatePropertiesPanelSize(); } } }
                          else { layoutElement.style.width = ''; }
                          break;
-                    case 'height': /* ... (unchanged size logic with aspect ratio check) ... */
+                    case 'height':
                          value = String(value).trim().toLowerCase();
                          if (isValidSizeOrPosValue(value)) { const newHeight = formatSizeOrPosValue(value); layoutElement.style.height = newHeight; const img = layoutElement.querySelector('img.element-image'); const aspectLock = layoutElement.dataset.aspectLock !== 'false'; const currentAspectRatio = parseFloat(layoutElement.dataset.aspectRatio); if (img && aspectLock && currentAspectRatio > 0 && newHeight !== 'auto' && layoutElement.style.width !== 'auto') { const heightValue = parseFloat(newHeight); if (!isNaN(heightValue) && heightValue > 0) { layoutElement.style.width = `${heightValue / currentAspectRatio}px`; updatePropertiesPanelSize(); } } }
                          else { layoutElement.style.height = ''; }
                          break;
-                     case 'image-src': /* ... (unchanged image src logic) ... */
+                     case 'image-src':
                          const imgTag = element.querySelector('img.element-image'); if (imgTag) { imgTag.src = value || `https://placehold.co/${defaultImageWidth}x${Math.round(defaultImageWidth * 0.75)}/cccccc/ffffff?text=Invalid+URL`; imgTag.alt = element.querySelector('#image-alt')?.value || 'Image'; imgTag.removeAttribute('data-natural-width'); imgTag.removeAttribute('data-natural-height'); imgTag.removeEventListener('load', () => handleImageLoad(imgTag, element)); imgTag.addEventListener('load', () => handleImageLoad(imgTag, element)); imgTag.onerror = () => { imgTag.src = `https://placehold.co/${element.offsetWidth || defaultImageWidth}x${element.offsetHeight || Math.round(defaultImageWidth*0.75)}/dc3545/ffffff?text=Error+Loading`; handleImageLoad(imgTag, element); }; if (imgTag.complete) { handleImageLoad(imgTag, element); } }
                          break;
                      case 'image-alt': const imgAlt = element.querySelector('img.element-image'); if (imgAlt) imgAlt.alt = value; break;
-                     case 'image-aspect-lock': /* ... (unchanged aspect lock logic) ... */
+                     case 'image-aspect-lock':
                          element.dataset.aspectLock = value ? 'true' : 'false'; if (value) { const currentAspectRatio = parseFloat(element.dataset.aspectRatio); if (currentAspectRatio > 0 && element.style.width && element.style.width !== 'auto') { element.style.height = `${element.offsetWidth * currentAspectRatio}px`; updatePropertiesPanelSize(); } }
                          break;
                      case 'button-link': const btnLink = element.querySelector('button.element-button'); if (btnLink) btnLink.setAttribute('data-href', value); break;
                      case 'target': const btnTarget = element.querySelector('button.element-button'); if (btnTarget) btnTarget.setAttribute('data-target', value); break;
-
-                     // --- ADDED: Crypto Properties ---
-                     case 'nft-contract':
-                         element.dataset.nftContract = value;
-                         // Optional: Update display if needed, e.g., fetch NFT data
-                         console.log("NFT Contract set to:", value);
-                         break;
-                     case 'nft-tokenid':
-                         element.dataset.nftTokenId = value;
-                         // Optional: Update display if needed
-                         console.log("NFT Token ID set to:", value);
-                         break;
+                     case 'nft-contract': element.dataset.nftContract = value; console.log("NFT Contract set to:", value); break;
+                     case 'nft-tokenid': element.dataset.nftTokenId = value; console.log("NFT Token ID set to:", value); break;
                      case 'token-symbol':
                          element.dataset.tokenSymbol = value;
-                         // Update the display text
                          const tokenSpan = element.querySelector('.element-token-balance span:first-child');
                          if (tokenSpan) tokenSpan.textContent = `Token: ${value || '???'}`;
                          console.log("Token Symbol set to:", value);
@@ -1714,55 +1562,31 @@ ${generatedBodyHtml}
 
             /** Updates the saved version count display in the top bar. */
             function updateSavedVersionCount() {
+                // (Keep this function unchanged)
                 let count = 0;
-                try {
-                    for (let i = 0; i < MAX_VERSIONS; i++) {
-                        if (localStorage.getItem(`${localStorageVersionPrefix}${i}`)) {
-                            count++;
-                        }
-                    }
-                } catch (error) {
-                    console.error("Could not access local storage to count versions:", error);
-                    showStatusMessage("Could not read saved versions.", "error");
-                }
+                try { for (let i = 0; i < MAX_VERSIONS; i++) { if (localStorage.getItem(`${localStorageVersionPrefix}${i}`)) { count++; } } }
+                catch (error) { console.error("Could not access local storage to count versions:", error); showStatusMessage("Could not read saved versions.", "error"); }
                 currentVersionsSaved = count;
                 if (savedVersionCountSpan) savedVersionCountSpan.textContent = currentVersionsSaved;
                 if (maxVersionCountSpan) maxVersionCountSpan.textContent = MAX_VERSIONS;
-                // Disable load button if no versions are saved
                 if (loadVersionBtn) loadVersionBtn.disabled = (currentVersionsSaved === 0);
-                // Disable save button if max versions reached
                 if (saveBtn) saveBtn.disabled = (currentVersionsSaved >= MAX_VERSIONS);
             }
 
-            /** Adds listeners to top bar buttons (Save, Preview, Undo, Publish, Load). */
+            /** Adds listeners to top bar buttons (Save, Preview, Undo, Publish, Load, IPFS). */
             function addTopBarButtonListeners() {
                 // Save Button
                 if (saveBtn) {
                     saveBtn.addEventListener('click', () => {
-                        if (currentVersionsSaved >= MAX_VERSIONS) {
-                            showStatusMessage(`Max ${MAX_VERSIONS} versions saved.`, 'error');
-                            return;
-                        }
-                        if (canvas) {
-                            try {
-                                localStorage.setItem(`${localStorageVersionPrefix}${currentVersionsSaved}`, canvas.innerHTML);
-                                updateSavedVersionCount(); // Update count and button states
-                                showStatusMessage(`Version ${currentVersionsSaved} saved (Simulated).`, 'success'); // Show 0-based index + 1
-                            } catch (error) {
-                                console.error("Save version error:", error);
-                                showStatusMessage("Could not save version. Storage might be full.", 'error');
-                            }
-                        }
+                        if (currentVersionsSaved >= MAX_VERSIONS) { showStatusMessage(`Max ${MAX_VERSIONS} versions saved.`, 'error'); return; }
+                        if (canvas) { try { localStorage.setItem(`${localStorageVersionPrefix}${currentVersionsSaved}`, canvas.innerHTML); updateSavedVersionCount(); showStatusMessage(`Version ${currentVersionsSaved + 1} saved (Simulated).`, 'success'); } catch (error) { console.error("Save version error:", error); showStatusMessage("Could not save version. Storage might be full.", 'error'); } }
                     });
                 }
                 // Preview Button
                 if (previewBtn && canvas) {
                     previewBtn.addEventListener('click', () => {
                         const previewWindow = window.open('', '_blank');
-                        if (!previewWindow) {
-                            showStatusMessage('Popup blocked! Please allow popups for this site.', 'error');
-                            return;
-                        }
+                        if (!previewWindow) { showStatusMessage('Popup blocked! Please allow popups.', 'error'); return; }
                         const previewHtml = generateFullHtmlForPreview();
                         previewWindow.document.write(previewHtml);
                         previewWindow.document.close();
@@ -1770,49 +1594,35 @@ ${generatedBodyHtml}
                 }
                 // Undo Button
                 if (undoBtn) undoBtn.addEventListener('click', undo);
-                // Publish Button
-                if (publishBtn) publishBtn.addEventListener('click', () => showStatusMessage('Publish feature not implemented.', 'info'));
-                // Load Version Button (ADDED)
+                // Publish Button (Standard - Not Implemented)
+                if (publishBtn) publishBtn.addEventListener('click', () => showStatusMessage('Standard Publish feature not implemented.', 'info'));
+                // Load Version Button
                 if (loadVersionBtn && canvas) {
                     loadVersionBtn.addEventListener('click', () => {
-                        if (currentVersionsSaved === 0) {
-                            showStatusMessage("No versions saved to load.", 'info');
-                            return;
-                        }
+                        if (currentVersionsSaved === 0) { showStatusMessage("No versions saved to load.", 'info'); return; }
                         const versionToLoad = prompt(`Enter version number to load (1-${currentVersionsSaved}):`);
-                        if (versionToLoad === null) return; // User cancelled
-
+                        if (versionToLoad === null) return;
                         const versionNum = parseInt(versionToLoad);
-                        if (isNaN(versionNum) || versionNum < 1 || versionNum > currentVersionsSaved) {
-                            showStatusMessage(`Invalid version number. Please enter between 1 and ${currentVersionsSaved}.`, 'error');
-                            return;
-                        }
-
+                        if (isNaN(versionNum) || versionNum < 1 || versionNum > currentVersionsSaved) { showStatusMessage(`Invalid version number. Enter 1-${currentVersionsSaved}.`, 'error'); return; }
                         try {
                             const savedHtml = localStorage.getItem(`${localStorageVersionPrefix}${versionNum - 1}`);
                             if (savedHtml) {
-                                canvas.innerHTML = savedHtml;
-                                setupCanvasElements(); // Re-attach listeners to loaded elements
-                                setSelectedElement(null); // Deselect any current element
-                                history = [savedHtml]; // Reset history with the loaded state
-                                if (undoBtn) undoBtn.disabled = true; // Disable undo after load
-                                if (isCodeTabActive()) { updateCodeView(); }
-                                checkCanvasPlaceholder(); // Check if placeholder needed
+                                canvas.innerHTML = savedHtml; setupCanvasElements(); setSelectedElement(null); history = [savedHtml];
+                                if (undoBtn) undoBtn.disabled = true; if (isCodeTabActive()) { updateCodeView(); } checkCanvasPlaceholder();
                                 showStatusMessage(`Version ${versionNum} loaded successfully.`, 'success');
-                            } else {
-                                showStatusMessage(`Could not find saved data for version ${versionNum}.`, 'error');
-                            }
-                        } catch (error) {
-                            console.error("Load version error:", error);
-                            showStatusMessage("Could not load version.", 'error');
-                        }
+                            } else { showStatusMessage(`Could not find saved data for version ${versionNum}.`, 'error'); }
+                        } catch (error) { console.error("Load version error:", error); showStatusMessage("Could not load version.", 'error'); }
                     });
+                }
+                // IPFS Publish Button Listener
+                if (publishIpfsBtn && canvas) {
+                    publishIpfsBtn.addEventListener('click', publishToIpfs);
                 }
             }
 
-            /** Generates full HTML for preview. */
-            function generateFullHtmlForPreview() {
-                // (Updated to handle crypto elements correctly)
+            /** Generates full HTML for preview or code view. */
+            function generateFullHtmlForPreview(forCodeView = false) {
+                // (Keep this function unchanged)
                 if (!canvas) return '';
                 const previewCanvas = canvas.cloneNode(true);
                 previewCanvas.querySelectorAll('.element-controls, .canvas-placeholder, .resize-handle, .guide-line').forEach(el => el.remove());
@@ -1820,36 +1630,53 @@ ${generatedBodyHtml}
                 previewCanvas.querySelectorAll('.canvas-element').forEach(el => {
                     el.removeAttribute('draggable'); el.style.cursor = 'default'; el.style.border = ''; el.style.boxShadow = ''; el.classList.remove('dragging');
                     delete el.dataset.aspectRatio; delete el.dataset.aspectLock; delete el.dataset.toolType;
-                    delete el.dataset.nftContract; delete el.dataset.nftTokenId; delete el.dataset.tokenSymbol; // Remove crypto data attributes
-                    delete el.dataset.connectedWallet; delete el.dataset.connectedAccount; // Remove wallet state
+                    delete el.dataset.nftContract; delete el.dataset.nftTokenId; delete el.dataset.tokenSymbol;
+                    delete el.dataset.connectedWallet; delete el.dataset.connectedAccount;
                     const img = el.querySelector('img.element-image'); if (img) { delete img.dataset.naturalWidth; delete img.dataset.naturalHeight; }
                 });
                 previewCanvas.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
-                previewCanvas.querySelectorAll('button.element-button[data-href]').forEach(btn => { /* ... (unchanged button -> link conversion) ... */
+                previewCanvas.querySelectorAll('button.element-button[data-href]').forEach(btn => {
                     const link = btn.getAttribute('data-href'); const target = btn.getAttribute('data-target') || '_self';
                     if (link && link !== '#') { const anchor = document.createElement('a'); anchor.href = link; anchor.target = target; anchor.textContent = btn.textContent; anchor.className = Array.from(btn.classList).filter(cls => cls.startsWith('element-')).join(' '); anchor.classList.add('preview-button-link'); const stylesToCopy = ['color', 'background-color', 'font-family', 'font-size', 'font-weight', 'text-align', 'padding', 'border-radius', 'margin', 'display', 'width', 'height']; stylesToCopy.forEach(styleProp => { if (btn.style[styleProp]) anchor.style[styleProp] = btn.style[styleProp]; }); btn.parentNode.replaceChild(anchor, btn); }
                     else { btn.removeAttribute('data-href'); btn.removeAttribute('data-target'); }
                 });
-                // Keep crypto buttons as buttons but remove onclick
-                 previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
-                    // ** MODIFICATION: No need to remove onclick here either **
-                    // btn.removeAttribute('onclick');
-                    // Reset text for preview
-                    btn.textContent = 'Connect Wallet';
-                    btn.classList.remove('connected');
+                previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
+                    btn.textContent = 'Connect Wallet'; btn.classList.remove('connected');
                  });
                 previewCanvas.querySelectorAll('.element-columns > div').forEach(col => { col.style.border = ''; });
                 previewCanvas.querySelectorAll('.element-spacer').forEach(sp => { sp.style.background = ''; sp.style.opacity = ''; });
 
                 let previewBodyHtml = formatHtml(previewCanvas.innerHTML);
                 const canvasHeight = canvas.style.height || '800px';
-                // Construct the full HTML
+                const title = forCodeView ? "My Generated Website" : "Website Preview";
+                const containerPadding = forCodeView ? "padding: 20px;" : "padding: 0;"; // Add padding only for code view
+                const walletScript = forCodeView ? '' : `
+    <script>
+        // Basic wallet connection simulation for preview purposes
+        document.querySelectorAll('.element-wallet-button').forEach(button => {
+            const previewWalletClickHandler = () => {
+                const isConnected = button.classList.contains('connected');
+                if (isConnected) { button.textContent = 'Connect Wallet'; button.classList.remove('connected'); console.log('Wallet disconnected (Preview)'); }
+                else {
+                    // Determine wallet type based on button ID or class if needed
+                    const walletType = button.id.includes('coinbase') ? 'Coinbase' : (button.id.includes('metamask') ? 'MetaMask' : 'Phantom');
+                    const dummyAccount = '0x123...abc';
+                    button.textContent = \`Connected: \${dummyAccount.substring(0, 6)}...\${dummyAccount.substring(dummyAccount.length - 4)}\`;
+                    button.classList.add('connected');
+                    console.log(\`\${walletType} connected (Preview): \${dummyAccount}\`);
+                }
+            };
+            button.removeEventListener('click', previewWalletClickHandler);
+            button.addEventListener('click', previewWalletClickHandler);
+        });
+    <\/script>`;
+
                 const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Preview</title>
+    <title>${title}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -1857,13 +1684,10 @@ ${generatedBodyHtml}
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         .website-container {
             position: relative; max-width: 1200px; height: ${canvasHeight};
-            margin: 20px auto; padding: 0; /* Remove padding for preview */
+            margin: 20px auto; ${containerPadding}
             border: 1px solid #eee; overflow: hidden;
         }
         ${defaultElementStyles}
-        /* --- ADDED: Wallet Button Script Placeholder --- */
-        /* Include basic styles for wallet button in preview */
-        .element-wallet-button { /* ... (styles from defaultElementStyles) ... */ }
         .element-wallet-button.connected { background-color: #28a745; }
         .element-wallet-button:disabled { background-color: #adb5bd; cursor: not-allowed; opacity: 0.7; }
     </style>
@@ -1872,34 +1696,7 @@ ${generatedBodyHtml}
     <div class="website-container">
 ${previewBodyHtml}
     </div>
-
-    <script>
-        // Basic wallet connection simulation for preview purposes
-        // ** MODIFICATION: Using addEventListener for preview as well **
-        document.querySelectorAll('.element-wallet-button').forEach(button => {
-            // Define the handler
-            const previewWalletClickHandler = () => {
-                const isConnected = button.classList.contains('connected');
-                if (isConnected) {
-                    // Simulate disconnect
-                    button.textContent = 'Connect Wallet';
-                    button.classList.remove('connected');
-                    console.log('Wallet disconnected (Preview)');
-                } else {
-                    // Simulate connect
-                    const walletType = button.id.includes('metamask') ? 'MetaMask' : 'Phantom'; // Simple check
-                    const dummyAccount = '0x123...abc'; // Placeholder account
-                    button.textContent = \`Connected: \${dummyAccount.substring(0, 6)}...\${dummyAccount.substring(dummyAccount.length - 4)}\`;
-                    button.classList.add('connected');
-                    console.log(\`\${walletType} connected (Preview): \${dummyAccount}\`);
-                }
-            };
-            // Remove potential old listener before adding
-            button.removeEventListener('click', previewWalletClickHandler);
-            // Add the listener
-            button.addEventListener('click', previewWalletClickHandler);
-        });
-    <\/script>
+    ${walletScript}
 </body>
 </html>`;
                  return fullHtml;
@@ -1907,28 +1704,16 @@ ${previewBodyHtml}
 
             /** Adds listeners to sidebar tabs. */
             function addSidebarTabListeners() {
-                // (Tab switching logic remains the same)
+                // (Keep this function unchanged)
                 if (sidebarTabs) {
                     sidebarTabs.forEach(tab => {
                         tab.addEventListener('click', () => {
-                            const tabName = tab.dataset.tab;
-                            if (tabName === currentActiveTab) return;
-
-                            sidebarTabs.forEach(t => t.classList.remove('active'));
-                            tab.classList.add('active');
-
-                            tabContents.forEach(content => {
-                                content.style.display = 'none';
-                                content.classList.remove('active');
-                            });
-
+                            const tabName = tab.dataset.tab; if (tabName === currentActiveTab) return;
+                            sidebarTabs.forEach(t => t.classList.remove('active')); tab.classList.add('active');
+                            tabContents.forEach(content => { content.style.display = 'none'; content.classList.remove('active'); });
                             const activeContent = document.getElementById(`${tabName}-tab`);
-                            if (activeContent) {
-                                activeContent.style.display = 'flex'; // Use flex for layout consistency
-                                activeContent.classList.add('active');
-                            }
-                            currentActiveTab = tabName;
-                            if (isCodeTabActive()) { updateCodeView(); }
+                            if (activeContent) { activeContent.style.display = 'flex'; activeContent.classList.add('active'); }
+                            currentActiveTab = tabName; if (isCodeTabActive()) { updateCodeView(); }
                         });
                     });
                 }
@@ -1936,30 +1721,20 @@ ${previewBodyHtml}
 
             /** Adds listeners to sidebar section titles for collapse/expand. */
             function addSidebarSectionToggleListeners() {
-                // (Toggle logic remains the same)
+                // (Keep this function unchanged)
                 const sectionTitles = document.querySelectorAll('.sidebar-section-title');
-                sectionTitles.forEach(title => {
-                    title.addEventListener('click', () => {
-                        const section = title.closest('.sidebar-section');
-                        if (section) {
-                            section.classList.toggle('collapsed');
-                        }
-                    });
-                });
+                sectionTitles.forEach(title => { title.addEventListener('click', () => { const section = title.closest('.sidebar-section'); if (section) { section.classList.toggle('collapsed'); } }); });
             }
 
             /** Adds listeners to device preview buttons. */
             function addDeviceButtonListeners() {
-                // (Device switching logic remains the same)
+                // (Keep this function unchanged)
                 if (deviceButtons && canvas) {
                     deviceButtons.forEach(btn => {
                         btn.addEventListener('click', () => {
-                            deviceButtons.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            const device = btn.dataset.device;
-                            canvas.classList.remove('canvas-device-mobile', 'canvas-device-tablet');
-                            if (device === 'mobile') { canvas.classList.add('canvas-device-mobile'); }
-                            else if (device === 'tablet') { canvas.classList.add('canvas-device-tablet'); }
+                            deviceButtons.forEach(b => b.classList.remove('active')); btn.classList.add('active');
+                            const device = btn.dataset.device; canvas.classList.remove('canvas-device-mobile', 'canvas-device-tablet');
+                            if (device === 'mobile') { canvas.classList.add('canvas-device-mobile'); } else if (device === 'tablet') { canvas.classList.add('canvas-device-tablet'); }
                         });
                     });
                 }
@@ -1967,102 +1742,51 @@ ${previewBodyHtml}
 
              /** Adds listeners to element category filter tags. */
              function addElementCategoryListeners() {
-                 // (Filtering logic remains the same)
+                 // (Keep this function unchanged)
                  if (elementCategoryTags) {
-                     elementCategoryTags.forEach(tag => {
-                         tag.addEventListener('click', () => {
-                             elementCategoryTags.forEach(t => t.classList.remove('active'));
-                             tag.classList.add('active');
-                             const category = tag.textContent.trim().toLowerCase();
-                             filterElementsByCategory(category);
-                         });
-                     });
+                     elementCategoryTags.forEach(tag => { tag.addEventListener('click', () => { elementCategoryTags.forEach(t => t.classList.remove('active')); tag.classList.add('active'); const category = tag.textContent.trim().toLowerCase(); filterElementsByCategory(category); }); });
                  }
              }
 
              /** Filters elements shown in the sidebar based on category. */
              function filterElementsByCategory(category) {
-                 // (Filtering logic remains the same)
-                 const allToolItems = elementsTabContent.querySelectorAll('.tool-item');
-                 const allSections = elementsTabContent.querySelectorAll('.sidebar-section');
-
-                 allToolItems.forEach(item => {
-                     const itemCategory = getItemCategory(item); // Helper function needed
-                     const matches = (category === 'all' || itemCategory === category);
-                     item.style.display = matches ? 'flex' : 'none';
-                 });
-
-                 // Hide sections that have no visible items (optional)
-                 allSections.forEach(section => {
-                     const visibleItems = section.querySelectorAll('.tool-item[style*="display: flex"], .tool-item:not([style*="display: none"])'); // Check visible items
-                     const title = section.querySelector('.sidebar-section-title');
-                     if (title && !title.textContent.toLowerCase().includes('filter')) { // Don't hide the filter section
-                         section.style.display = visibleItems.length > 0 ? 'block' : 'none';
-                     }
-                 });
+                 // (Keep this function unchanged)
+                 const allToolItems = elementsTabContent.querySelectorAll('.tool-item'); const allSections = elementsTabContent.querySelectorAll('.sidebar-section');
+                 allToolItems.forEach(item => { const itemCategory = getItemCategory(item); const matches = (category === 'all' || itemCategory === category); item.style.display = matches ? 'flex' : 'none'; });
+                 allSections.forEach(section => { const visibleItems = section.querySelectorAll('.tool-item[style*="display: flex"], .tool-item:not([style*="display: none"])'); const title = section.querySelector('.sidebar-section-title'); if (title && !title.textContent.toLowerCase().includes('filter')) { section.style.display = visibleItems.length > 0 ? 'block' : 'none'; } });
              }
 
              /** Helper to determine the category of a tool item (based on parent section). */
              function getItemCategory(item) {
-                 // (Category determination logic remains the same)
-                 const section = item.closest('.sidebar-section');
-                 if (!section) return 'unknown';
-                 const titleElement = section.querySelector('.sidebar-section-title span');
-                 if (!titleElement) return 'unknown';
+                 // (Keep this function unchanged)
+                 const section = item.closest('.sidebar-section'); if (!section) return 'unknown';
+                 const titleElement = section.querySelector('.sidebar-section-title span'); if (!titleElement) return 'unknown';
                  const titleText = titleElement.textContent.toLowerCase();
-                 if (titleText.includes('basic')) return 'basic';
-                 if (titleText.includes('layout')) return 'layout';
-                 if (titleText.includes('media')) return 'media';
-                 if (titleText.includes('forms')) return 'forms';
-                 if (titleText.includes('components')) return 'components';
-                 if (titleText.includes('crypto') || titleText.includes('web3')) return 'crypto'; // Added crypto check
-                 return 'other';
+                 if (titleText.includes('basic')) return 'basic'; if (titleText.includes('layout')) return 'layout'; if (titleText.includes('media')) return 'media'; if (titleText.includes('forms')) return 'forms'; if (titleText.includes('components')) return 'components'; if (titleText.includes('crypto') || titleText.includes('web3')) return 'crypto'; return 'other';
              }
 
              /** Adds listener to the copy code button. */
              function addCopyCodeButtonListener() {
-                 // (Copy logic remains the same)
+                 // (Keep this function unchanged)
                  if (copyCodeBtn && generatedCodeDisplay) {
-                     copyCodeBtn.addEventListener('click', () => {
-                         const codeToCopy = generatedCodeDisplay.querySelector('code')?.textContent || generatedCodeDisplay.textContent;
-                         navigator.clipboard.writeText(codeToCopy)
-                             .then(() => showStatusMessage('Code copied to clipboard!', 'success'))
-                             .catch(err => { console.error('Failed to copy code: ', err); showStatusMessage('Failed to copy code.', 'error'); });
-                     });
+                     copyCodeBtn.addEventListener('click', () => { const codeToCopy = generatedCodeDisplay.querySelector('code')?.textContent || generatedCodeDisplay.textContent; navigator.clipboard.writeText(codeToCopy).then(() => showStatusMessage('Code copied to clipboard!', 'success')).catch(err => { console.error('Failed to copy code: ', err); showStatusMessage('Failed to copy code.', 'error'); }); });
                  }
              }
 
              /** Adds listeners for sidebar resizing. */
              function addSidebarResizerListeners() {
-                 // (Resizing logic remains the same)
-                 if (!sidebarResizer || !sidebar) return;
-                 let startX, startWidth;
-                 sidebarResizer.addEventListener('mousedown', (e) => {
-                     isResizingSidebar = true; startX = e.clientX; startWidth = sidebar.offsetWidth;
-                     document.body.classList.add('resizing-sidebar'); e.preventDefault();
-                 });
-                 document.addEventListener('mousemove', (e) => {
-                     if (!isResizingSidebar) return;
-                     const dx = e.clientX - startX; let newWidth = startWidth + dx;
-                     const minWidth = parseInt(getComputedStyle(sidebar).minWidth);
-                     const maxWidth = parseInt(getComputedStyle(sidebar).maxWidth);
-                     newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-                     sidebar.style.width = `${newWidth}px`;
-                 });
-                 document.addEventListener('mouseup', () => {
-                     if (isResizingSidebar) { isResizingSidebar = false; document.body.classList.remove('resizing-sidebar'); }
-                 });
+                 // (Keep this function unchanged)
+                 if (!sidebarResizer || !sidebar) return; let startX, startWidth;
+                 sidebarResizer.addEventListener('mousedown', (e) => { isResizingSidebar = true; startX = e.clientX; startWidth = sidebar.offsetWidth; document.body.classList.add('resizing-sidebar'); e.preventDefault(); });
+                 document.addEventListener('mousemove', (e) => { if (!isResizingSidebar) return; const dx = e.clientX - startX; let newWidth = startWidth + dx; const minWidth = parseInt(getComputedStyle(sidebar).minWidth); const maxWidth = parseInt(getComputedStyle(sidebar).maxWidth); newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth)); sidebar.style.width = `${newWidth}px`; });
+                 document.addEventListener('mouseup', () => { if (isResizingSidebar) { isResizingSidebar = false; document.body.classList.remove('resizing-sidebar'); } });
              }
 
             /** Adds listeners for canvas height resizing. */
             function addCanvasResizerListeners() {
-                // (Resizing logic remains the same)
+                // (Keep this function unchanged)
                 if (!canvasResizerY || !canvas) return;
-                canvasResizerY.addEventListener('mousedown', (e) => {
-                    isResizingCanvasHeight = true; resizeStartY = e.clientY; initialHeight = canvas.offsetHeight;
-                    document.body.classList.add('resizing-canvas-h'); e.preventDefault();
-                });
-                // Mouse move and up are handled by the global listeners
+                canvasResizerY.addEventListener('mousedown', (e) => { isResizingCanvasHeight = true; resizeStartY = e.clientY; initialHeight = canvas.offsetHeight; document.body.classList.add('resizing-canvas-h'); e.preventDefault(); });
             }
 
             // --- Color Palette Functions ---
@@ -2084,32 +1808,16 @@ ${previewBodyHtml}
             }
 
             // --- AI Tool Functions ---
-            function addAiToolListeners() {
-                // (AI logic remains the same)
-                if (aiToolSelector) {
-                    aiToolSelector.querySelectorAll('.list-tool-item').forEach(item => {
-                        item.addEventListener('click', () => {
-                            aiToolSelector.querySelectorAll('.list-tool-item').forEach(i => i.classList.remove('active'));
-                            item.classList.add('active');
-                            selectedAiTool = item.dataset.aiTool;
-                            // Optionally show/hide prompt based on tool
-                            aiPromptTextarea.placeholder = `Describe input for ${item.querySelector('span').textContent}...`;
-                        });
-                    });
-                }
-                if (aiGenerateBtn) {
-                    aiGenerateBtn.addEventListener('click', handleAiGeneration);
-                }
+            function addAiToolListeners() { /* ... (unchanged) ... */
+                if (aiToolSelector) { aiToolSelector.querySelectorAll('.list-tool-item').forEach(item => { item.addEventListener('click', () => { aiToolSelector.querySelectorAll('.list-tool-item').forEach(i => i.classList.remove('active')); item.classList.add('active'); selectedAiTool = item.dataset.aiTool; aiPromptTextarea.placeholder = `Describe input for ${item.querySelector('span').textContent}...`; }); }); }
+                if (aiGenerateBtn) { aiGenerateBtn.addEventListener('click', handleAiGeneration); }
             }
-            function handleAiGeneration() {
-                // (AI logic remains the same)
+            function handleAiGeneration() { /* ... (unchanged) ... */
                 if (!selectedAiTool) { showStatusMessage('Please select an AI tool first.', 'info'); return; }
                 const prompt = aiPromptTextarea.value.trim();
                 if (!prompt && ['generate_content', 'rewrite_text', 'image_suggestions'].includes(selectedAiTool)) { showStatusMessage('Please enter a prompt or description.', 'info'); return; }
                 showStatusMessage('AI processing... (Simulated)', 'info');
-                aiOutputSection.style.display = 'block';
-                aiOutputDisplay.textContent = 'Generating response...';
-                // Simulate AI response
+                aiOutputSection.style.display = 'block'; aiOutputDisplay.textContent = 'Generating response...';
                 setTimeout(() => {
                     let aiResult = `Simulated AI result for "${selectedAiTool}":\n`;
                     if (selectedAiTool === 'generate_content') { aiResult += `Based on your prompt "${prompt}", here is some generated content:\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`; }
@@ -2126,39 +1834,49 @@ ${previewBodyHtml}
 
             /** Shows the wallet connection modal and sets the current button. */
             function showWalletModal(triggerButton) {
-                if (!walletModal || !connectMetaMaskBtn || !connectPhantomBtn) return;
+                if (!walletModal || !connectMetaMaskBtn || !connectPhantomBtn || !connectCoinbaseBtn) return;
                 currentWalletButton = triggerButton; // Store the button that opened the modal
 
-                // --- MODIFICATION START: Check wallet availability and update buttons ---
-                const isMetaMaskAvailable = typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+                // --- Check wallet availability and update buttons ---
+                const provider = window.ethereum; // Use window.ethereum for both MetaMask and Coinbase for now
+                const isMetaMaskAvailable = provider && provider.isMetaMask;
+                const isCoinbaseAvailable = provider && (provider.isCoinbaseWallet || (provider.providers && provider.providers.find(p => p.isCoinbaseWallet))); // Check standard and potential multi-provider scenarios
                 const isPhantomAvailable = typeof window.phantom?.solana?.isPhantom !== 'undefined' && window.phantom.solana.isPhantom;
 
-                // Reset MetaMask button state
-                connectMetaMaskBtn.disabled = false;
-                const metaMaskSpan = connectMetaMaskBtn.querySelector('span');
-                if (metaMaskSpan) metaMaskSpan.textContent = 'Connect MetaMask';
-
-                // Reset Phantom button state
-                connectPhantomBtn.disabled = false;
-                const phantomSpan = connectPhantomBtn.querySelector('span');
-                if (phantomSpan) phantomSpan.textContent = 'Connect Phantom';
+                // Reset button states
+                [connectMetaMaskBtn, connectCoinbaseBtn, connectPhantomBtn].forEach(btn => {
+                    btn.disabled = false;
+                    const span = btn.querySelector('span');
+                    if (span) {
+                        if (btn === connectMetaMaskBtn) span.textContent = 'Connect MetaMask';
+                        else if (btn === connectCoinbaseBtn) span.textContent = 'Connect Coinbase Wallet';
+                        else if (btn === connectPhantomBtn) span.textContent = 'Connect Phantom';
+                    }
+                });
 
                 // Update MetaMask button if not available
                 if (!isMetaMaskAvailable) {
                     connectMetaMaskBtn.disabled = true;
-                    if (metaMaskSpan) metaMaskSpan.textContent = 'MetaMask not detected or try different browser';
+                    const metaMaskSpan = connectMetaMaskBtn.querySelector('span');
+                    if (metaMaskSpan) metaMaskSpan.textContent = 'MetaMask not detected';
+                }
+
+                // Update Coinbase button if not available
+                if (!isCoinbaseAvailable) {
+                    connectCoinbaseBtn.disabled = true;
+                    const coinbaseSpan = connectCoinbaseBtn.querySelector('span');
+                    if (coinbaseSpan) coinbaseSpan.textContent = 'Coinbase Wallet not detected';
                 }
 
                 // Update Phantom button if not available
                 if (!isPhantomAvailable) {
                     connectPhantomBtn.disabled = true;
-                    if (phantomSpan) phantomSpan.textContent = 'Phantom not detected or try different browser';
+                    const phantomSpan = connectPhantomBtn.querySelector('span');
+                    if (phantomSpan) phantomSpan.textContent = 'Phantom not detected';
                 }
-                // --- MODIFICATION END ---
-
 
                 walletModal.classList.remove('hidden');
-                // Use setTimeout to allow the 'hidden' class removal to register before starting transition
+                // Use setTimeout for transition effect
                 setTimeout(() => {
                     walletModal.classList.remove('opacity-0');
                     if (walletModalContent) {
@@ -2169,73 +1887,78 @@ ${previewBodyHtml}
             }
 
             /** Hides the wallet connection modal. */
-            function hideWalletModal() {
-                if (!walletModal) return;
-                isWalletModalOpen = false;
-                walletModal.classList.add('opacity-0');
-                if (walletModalContent) {
-                    walletModalContent.classList.add('scale-95', 'opacity-0');
-                }
-                // Wait for transition to finish before adding 'hidden'
-                setTimeout(() => {
-                    walletModal.classList.add('hidden');
-                }, 300); // Match transition duration
-                currentWalletButton = null; // Clear the reference
+            function hideWalletModal() { /* ... (unchanged) ... */
+                if (!walletModal) return; isWalletModalOpen = false; walletModal.classList.add('opacity-0'); if (walletModalContent) { walletModalContent.classList.add('scale-95', 'opacity-0'); }
+                setTimeout(() => { walletModal.classList.add('hidden'); }, 300); currentWalletButton = null;
             }
 
             /** Hides modal only if the click is on the overlay, not the content. */
-            function hideWalletModalIfOverlay(event) {
-                if (event.target === walletModal) { // Check if the click target is the overlay itself
-                    hideWalletModal();
-                }
+            function hideWalletModalIfOverlay(event) { /* ... (unchanged) ... */
+                if (event.target === walletModal) { hideWalletModal(); }
             }
 
             /** Handles clicks on the main wallet connect button on the canvas. */
-            function handleWalletButtonClick(buttonElement) {
-                if (!buttonElement) return; // Add safety check
-                if (buttonElement.classList.contains('connected')) {
-                    // If already connected, disconnect
-                    disconnectWallet(buttonElement);
-                } else {
-                    // If not connected, show the modal
-                    showWalletModal(buttonElement);
-                }
+            function handleWalletButtonClick(buttonElement) { /* ... (unchanged) ... */
+                if (!buttonElement) return; if (buttonElement.classList.contains('connected')) { disconnectWallet(buttonElement); } else { showWalletModal(buttonElement); }
             }
 
             /** Adds listeners to the buttons inside the wallet modal. */
             function addWalletModalListeners() {
                 if (connectMetaMaskBtn) {
                     connectMetaMaskBtn.addEventListener('click', async () => {
-                        if (connectMetaMaskBtn.disabled) return; // Do nothing if disabled
+                        if (connectMetaMaskBtn.disabled) return;
                         await connectWallet('metamask');
+                    });
+                }
+                 // ADDED: Coinbase listener
+                if (connectCoinbaseBtn) {
+                    connectCoinbaseBtn.addEventListener('click', async () => {
+                        if (connectCoinbaseBtn.disabled) return;
+                        await connectWallet('coinbase');
                     });
                 }
                 if (connectPhantomBtn) {
                     connectPhantomBtn.addEventListener('click', async () => {
-                        if (connectPhantomBtn.disabled) return; // Do nothing if disabled
+                        if (connectPhantomBtn.disabled) return;
                         await connectWallet('phantom');
                     });
                 }
             }
 
-            /** Connects to the specified wallet type (MetaMask or Phantom). */
+            /** Connects to the specified wallet type (MetaMask, Coinbase, or Phantom). */
             async function connectWallet(walletType) {
                 if (!currentWalletButton) return; // Should have a button reference
 
                 let provider;
                 let accounts = [];
                 let errorMsg = null;
+                let walletName = ''; // For user messages
 
                 try {
                     if (walletType === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
                         provider = window.ethereum;
+                        walletName = 'MetaMask';
                         accounts = await provider.request({ method: 'eth_requestAccounts' });
+                    } else if (walletType === 'coinbase' && typeof window.ethereum !== 'undefined') {
+                        // Attempt to use the standard window.ethereum provider
+                        // Coinbase Wallet often injects itself here, sometimes within a provider array
+                        provider = window.ethereum;
+                        // Check if it's specifically Coinbase Wallet (might be within provider.providers)
+                        const isCoinbase = provider.isCoinbaseWallet || (provider.providers && provider.providers.find(p => p.isCoinbaseWallet));
+                        if (isCoinbase) {
+                            walletName = 'Coinbase Wallet';
+                            // If multiple providers, might need to select Coinbase specifically, but often requestAccounts works
+                            accounts = await provider.request({ method: 'eth_requestAccounts' });
+                        } else {
+                             errorMsg = 'Coinbase Wallet provider not found via window.ethereum.';
+                        }
                     } else if (walletType === 'phantom' && typeof window.phantom?.solana?.isPhantom !== 'undefined') {
                         provider = window.phantom.solana;
+                        walletName = 'Phantom';
                         const resp = await provider.connect();
                         accounts = [resp.publicKey.toString()]; // Phantom returns public key object
                     } else {
-                        errorMsg = `${walletType === 'metamask' ? 'MetaMask' : 'Phantom'} is not available. Please install it or try a different browser.`;
+                        errorMsg = `${walletType === 'metamask' ? 'MetaMask' : (walletType === 'coinbase' ? 'Coinbase Wallet' : 'Phantom')} is not available. Please install it or try a different browser.`;
                     }
 
                     if (accounts && accounts.length > 0) {
@@ -2248,22 +1971,20 @@ ${previewBodyHtml}
                         currentWalletButton.dataset.connectedWallet = walletType; // Store connection info
                         currentWalletButton.dataset.connectedAccount = connectedAccount;
 
-                        showStatusMessage(`${walletType === 'metamask' ? 'MetaMask' : 'Phantom'} connected: ${connectedAccount.substring(0, 6)}...`, 'success');
+                        showStatusMessage(`${walletName} connected: ${connectedAccount.substring(0, 6)}...`, 'success');
                         hideWalletModal();
                         saveToHistory(); // Save state after connection
                     } else if (!errorMsg) {
-                        errorMsg = `Connection refused or no accounts found for ${walletType === 'metamask' ? 'MetaMask' : 'Phantom'}.`;
+                        errorMsg = `Connection refused or no accounts found for ${walletName}.`;
                     }
 
                 } catch (err) {
                     console.error(`Error connecting to ${walletType}:`, err);
-                    errorMsg = `Error connecting to ${walletType}: ${err.message || 'Connection failed.'}`;
+                    errorMsg = `Error connecting to ${walletName || walletType}: ${err.message || 'Connection failed.'}`;
                 }
 
                 if (errorMsg) {
                     showStatusMessage(errorMsg, 'error');
-                    // Optionally hide modal on error, or keep it open
-                    // hideWalletModal();
                 }
             }
 
@@ -2272,7 +1993,12 @@ ${previewBodyHtml}
                  if (!buttonElement) return;
 
                  const walletType = buttonElement.dataset.connectedWallet;
-                 showStatusMessage(`${walletType === 'metamask' ? 'MetaMask' : 'Phantom'} disconnected.`, 'info');
+                 let walletName = 'Wallet'; // Default
+                 if (walletType === 'metamask') walletName = 'MetaMask';
+                 else if (walletType === 'coinbase') walletName = 'Coinbase Wallet';
+                 else if (walletType === 'phantom') walletName = 'Phantom';
+
+                 showStatusMessage(`${walletName} disconnected.`, 'info');
 
                  // Reset button state
                  buttonElement.textContent = 'Connect Wallet';
@@ -2287,21 +2013,32 @@ ${previewBodyHtml}
             }
 
 
+            /** ADDED: IPFS Publish Function (Simulated) */
+            function publishToIpfs() {
+                // (Keep this function unchanged)
+                if (!canvas) return;
+                showStatusMessage('Generating website content...', 'info');
+                const websiteHtml = generateFullHtmlForPreview(true);
+                if (!websiteHtml) { showStatusMessage('Error generating website content.', 'error'); return; }
+                showStatusMessage('Simulating upload to IPFS...', 'info');
+                setTimeout(() => {
+                    const fakeCid = 'Qm' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    const gatewayUrl = `https://ipfs.io/ipfs/${fakeCid}`;
+                    console.log("Simulated IPFS Upload Content:", websiteHtml); console.log("Simulated IPFS CID:", fakeCid); console.log("Simulated Gateway URL:", gatewayUrl);
+                    showStatusMessage(`Simulated publish success! IPFS CID: ${fakeCid}. Gateway: ${gatewayUrl}`, 'success');
+                }, 2500);
+            }
+
             /** Displays a temporary status message at the bottom center. */
             function showStatusMessage(message, type = 'info') {
+                // (Keep this function unchanged)
                 if (!walletStatusMessage) return;
                 walletStatusMessage.textContent = message;
-                walletStatusMessage.className = ''; // Reset classes
-                walletStatusMessage.classList.add(type); // Add type class (error, success, info)
-                walletStatusMessage.style.display = 'block';
-                walletStatusMessage.style.animation = 'none'; // Reset animation
-                void walletStatusMessage.offsetWidth; // Trigger reflow
-                walletStatusMessage.style.animation = 'fadeIn 0.3s ease forwards';
-
-                // Hide after a few seconds
-                setTimeout(() => {
-                    walletStatusMessage.style.display = 'none';
-                }, 4000);
+                walletStatusMessage.className = ''; walletStatusMessage.classList.add(type);
+                walletStatusMessage.style.display = 'block'; walletStatusMessage.style.animation = 'none';
+                void walletStatusMessage.offsetWidth; walletStatusMessage.style.animation = 'fadeIn 0.3s ease forwards';
+                const duration = message.toLowerCase().includes('ipfs') ? 8000 : 4000;
+                setTimeout(() => { walletStatusMessage.style.display = 'none'; }, duration);
             }
 
             // --- Initialization ---

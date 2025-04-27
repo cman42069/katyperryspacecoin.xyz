@@ -321,7 +321,7 @@
         .canvas-element .element-controls {
             display: none; /* Hidden by default */
             position: absolute;
-            /* REVERTED: Position controls inside top-right corner */
+            /* Position controls inside top-right corner */
             top: 2px;
             right: 2px;
             background-color: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -928,9 +928,14 @@
                     el.classList.remove('dragging');
                     // Remove data attributes used by builder
                     delete el.dataset.aspectRatio;
+                    delete el.dataset.aspectLock; // Added removal
                     delete el.dataset.toolType; // Remove tool type identifier
                     delete el.dataset.connectedWallet; // Remove wallet state
                     delete el.dataset.connectedAccount;
+                    delete el.dataset.nftContract; // Remove crypto data attributes
+                    delete el.dataset.nftTokenId;
+                    delete el.dataset.tokenSymbol;
+                    const img = el.querySelector('img.element-image'); if (img) { delete img.dataset.naturalWidth; delete img.dataset.naturalHeight; }
                 });
                 previewCanvas.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
                 // Convert standard buttons to links
@@ -945,20 +950,19 @@
                     } else { btn.removeAttribute('data-href'); btn.removeAttribute('data-target'); }
                 });
                 // Keep crypto buttons as buttons but remove onclick/data attributes
-                previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
-                    // ** MODIFICATION: Remove the onclick attribute removal here, as it's handled by addEventListener now **
-                    // btn.removeAttribute('onclick');
+                 previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
+                    btn.onclick = null; // Explicitly remove inline onclick if any
                     btn.removeAttribute('data-connected-wallet');
                     btn.removeAttribute('data-connected-account');
-                    // You might want to add placeholder text or disable them in the static code view
-                    // btn.textContent = 'Connect Wallet (Preview)';
-                    // btn.disabled = true;
-                });
+                    // Reset text for code view
+                    btn.textContent = 'Connect Wallet';
+                    btn.classList.remove('connected');
+                 });
                 previewCanvas.querySelectorAll('.element-columns > div').forEach(col => { col.style.border = ''; });
                 previewCanvas.querySelectorAll('.element-spacer').forEach(sp => { sp.style.background = ''; sp.style.opacity = ''; });
                 let generatedBodyHtml = formatHtml(previewCanvas.innerHTML);
                 const canvasHeight = canvas.style.height || '800px';
-                // Construct the full HTML, ensuring default styles are included
+                // Construct the full HTML, ensuring default styles and necessary scripts are included
                 const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -975,7 +979,7 @@
             max-width: 1200px; /* Match canvas max-width */
             height: ${canvasHeight}; /* Use the actual canvas height */
             margin: 20px auto; /* Center the container */
-            padding: 20px; /* Add some padding */
+            padding: 0; /* Remove padding for preview */
             border: 1px solid #eee; /* Optional border */
             overflow: hidden; /* Prevent overflow */
         }
@@ -988,7 +992,72 @@
     <div class="website-container">
 ${generatedBodyHtml}
     </div>
-    </body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const walletButtons = document.querySelectorAll('.element-wallet-button');
+            let currentConnectedAccount = null; // Track connection state locally
+
+            // Function to update button state
+            function updateButtonState(button, isConnected, account) {
+                if (isConnected) {
+                    button.textContent = \`Connected: \${account.substring(0, 6)}...\${account.substring(account.length - 4)}\`;
+                    button.classList.add('connected');
+                } else {
+                    button.textContent = 'Connect Wallet';
+                    button.classList.remove('connected');
+                }
+            }
+
+            // Add click listeners to all wallet buttons
+            walletButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    if (button.classList.contains('connected')) {
+                        // Simulate disconnect (no actual blockchain disconnect here)
+                        console.log('Wallet disconnected (Simulated)');
+                        currentConnectedAccount = null;
+                        updateButtonState(button, false, null);
+                        // Optionally update other elements (e.g., token balance)
+                    } else {
+                        // Attempt to connect using MetaMask (or preferred provider)
+                        if (typeof window.ethereum !== 'undefined') {
+                            try {
+                                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                                if (accounts.length > 0) {
+                                    currentConnectedAccount = accounts[0];
+                                    console.log('Wallet connected:', currentConnectedAccount);
+                                    updateButtonState(button, true, currentConnectedAccount);
+                                    // Optionally update other elements
+                                } else {
+                                    console.error('No accounts found.');
+                                    alert('Connection successful, but no accounts found.');
+                                }
+                            } catch (error) {
+                                console.error('Wallet connection failed:', error);
+                                if (error.code === 4001) {
+                                    alert('Wallet connection request rejected.');
+                                } else {
+                                    alert('Wallet connection failed. See console for details.');
+                                }
+                            }
+                        } else {
+                            alert('MetaMask (or compatible wallet) not detected. Please install it.');
+                        }
+                    }
+                });
+
+                // Initial check (e.g., if page reloads and connection persists)
+                // This is a basic example; real dApps often use libraries for state management
+                // if (/* check if already connected */) {
+                //    updateButtonState(button, true, currentConnectedAccount);
+                // }
+            });
+
+            // Add logic here to interact with NFT display or token balance elements
+            // based on the 'currentConnectedAccount' if needed.
+        });
+    <\/script>
+</body>
 </html>`;
                 const codeBlock = generatedCodeDisplay.querySelector('code');
                 if (codeBlock) { codeBlock.textContent = fullHtml; } else { generatedCodeDisplay.textContent = fullHtml; }
@@ -1029,11 +1098,11 @@ ${generatedBodyHtml}
 
             /** Initializes the builder interface and event listeners. */
             function initBuilder() {
-                updateSavedVersionCount(); // ADDED: Update count on initial load
+                updateSavedVersionCount(); // Update count on initial load
                 populateColorPalettes();
                 addPaletteEventListeners();
                 setupCanvasElements();
-                addToolItemListeners(); // Will now include crypto tools
+                addToolItemListeners(); // Includes crypto tools now
                 addCanvasListeners();
                 addPropertiesPanelListeners();
                 addTopBarButtonListeners(); // Includes save, preview, undo, publish, load, AND help
@@ -1086,7 +1155,7 @@ ${generatedBodyHtml}
                         initialWidth = '200px'; initialHeight = '200px';
                         break;
                     case 'wallet-connect':
-                        // ** MODIFICATION: Removed onclick attribute **
+                        // ** Use button tag, event listener will be added in setupCanvasElements **
                         contentHtml = `<button class="element-wallet-button">Connect Wallet</button>`;
                         initialWidth = '180px'; // Give it a default width
                         initialHeight = '40px'; // Give it a default height
@@ -1102,33 +1171,22 @@ ${generatedBodyHtml}
                 elementWrapper.style.width = initialWidth;
                 elementWrapper.style.height = initialHeight;
 
-                // Add controls (excluding for wallet button for now, simplicity)
-                 if (type !== 'wallet-connect') {
-                    const controls = document.createElement('div');
-                    controls.className = 'element-controls';
-                    controls.innerHTML = `
-                        <button class="drag-handle" title="Move Element"><i class="fas fa-arrows-alt"></i></button>
-                        <button class="edit-btn" title="Edit/Toggle Properties"><i class="fas fa-pen"></i></button>
-                        <button class="delete-btn" title="Delete Element"><i class="fas fa-trash"></i></button>
-                    `;
-                    elementWrapper.appendChild(controls);
+                // Add controls (including for wallet button now)
+                 const controls = document.createElement('div');
+                 controls.className = 'element-controls';
+                 controls.innerHTML = `
+                     <button class="drag-handle" title="Move Element"><i class="fas fa-arrows-alt"></i></button>
+                     ${type !== 'wallet-connect' ? '<button class="edit-btn" title="Edit/Toggle Properties"><i class="fas fa-pen"></i></button>' : ''}
+                     <button class="delete-btn" title="Delete Element"><i class="fas fa-trash"></i></button>
+                 `;
+                 elementWrapper.appendChild(controls);
 
-                    // Add resize handle (excluding for wallet button)
-                    const resizeHandleBR = document.createElement('div');
-                    resizeHandleBR.className = 'resize-handle br';
-                    elementWrapper.appendChild(resizeHandleBR);
-                 } else {
-                     // For wallet button, add simpler controls (move/delete)
-                     const controls = document.createElement('div');
-                     controls.className = 'element-controls';
-                     controls.innerHTML = `
-                         <button class="drag-handle" title="Move Element"><i class="fas fa-arrows-alt"></i></button>
-                         <button class="delete-btn" title="Delete Element"><i class="fas fa-trash"></i></button>
-                     `;
-                     elementWrapper.appendChild(controls);
-                     // No resize handle for the wallet button
+                 // Add resize handle (excluding for wallet button and some others)
+                 if (!['wallet-connect', 'spacer', 'divider'].includes(type)) {
+                     const resizeHandleBR = document.createElement('div');
+                     resizeHandleBR.className = 'resize-handle br';
+                     elementWrapper.appendChild(resizeHandleBR);
                  }
-
 
                 // Image load handling
                 if (isImageElement) {
@@ -1200,7 +1258,7 @@ ${generatedBodyHtml}
                         if (imgTag.complete && imgTag.naturalWidth > 0) { handleImageLoad(imgTag, element); }
                     }
 
-                    // --- ** MODIFICATION: Wallet Button Listener using addEventListener ** ---
+                    // --- ** Wallet Button Listener using addEventListener ** ---
                     const walletButton = element.querySelector('.element-wallet-button');
                     if (walletButton) {
                         // Define the handler function separately to allow removal
@@ -1211,8 +1269,17 @@ ${generatedBodyHtml}
                         walletButton.addEventListener('click', walletClickHandler);
                         // Also clear any potential inline onclick attribute just in case
                         walletButton.onclick = null;
+
+                        // ** Restore button state based on global vars if needed **
+                        if (element.dataset.connectedWallet && element.dataset.connectedAccount) {
+                             buttonElement.textContent = `Connected: ${element.dataset.connectedAccount.substring(0, 6)}...${element.dataset.connectedAccount.substring(element.dataset.connectedAccount.length - 4)}`;
+                             buttonElement.classList.add('connected');
+                        } else {
+                            buttonElement.textContent = 'Connect Wallet';
+                            buttonElement.classList.remove('connected');
+                        }
                     }
-                    // --- ** END MODIFICATION ** ---
+                    // --- ** END Wallet Button Listener ** ---
                 });
             }
 
@@ -1747,9 +1814,11 @@ ${generatedBodyHtml}
                         }
                         if (canvas) {
                             try {
-                                localStorage.setItem(`${localStorageVersionPrefix}${currentVersionsSaved}`, canvas.innerHTML);
+                                // Save current state including data attributes
+                                const canvasState = canvas.innerHTML;
+                                localStorage.setItem(`${localStorageVersionPrefix}${currentVersionsSaved}`, canvasState);
                                 updateSavedVersionCount(); // Update count and button states
-                                showStatusMessage(`Version ${currentVersionsSaved + 1} saved (Simulated).`, 'success'); // Show 1-based index
+                                showStatusMessage(`Version ${currentVersionsSaved} saved.`, 'success'); // Show 0-based index for consistency
                             } catch (error) {
                                 console.error("Save version error:", error);
                                 showStatusMessage("Could not save version. Storage might be full.", 'error');
@@ -1791,7 +1860,7 @@ ${generatedBodyHtml}
                         }
 
                         try {
-                            const savedHtml = localStorage.getItem(`${localStorageVersionPrefix}${versionNum - 1}`);
+                            const savedHtml = localStorage.getItem(`${localStorageVersionPrefix}${versionNum - 1}`); // Use 0-based index
                             if (savedHtml) {
                                 canvas.innerHTML = savedHtml;
                                 setupCanvasElements(); // Re-attach listeners to loaded elements
@@ -1822,11 +1891,13 @@ ${generatedBodyHtml}
 
             /** Generates full HTML for preview. */
             function generateFullHtmlForPreview() {
-                // (Updated to handle crypto elements correctly)
+                // (Updated to handle crypto elements correctly for preview)
                 if (!canvas) return '';
                 const previewCanvas = canvas.cloneNode(true);
+                // Remove builder UI elements
                 previewCanvas.querySelectorAll('.element-controls, .canvas-placeholder, .resize-handle, .guide-line').forEach(el => el.remove());
                 previewCanvas.querySelectorAll('.canvas-element.active').forEach(el => el.classList.remove('active'));
+                // Clean up elements for preview
                 previewCanvas.querySelectorAll('.canvas-element').forEach(el => {
                     el.removeAttribute('draggable'); el.style.cursor = 'default'; el.style.border = ''; el.style.boxShadow = ''; el.classList.remove('dragging');
                     delete el.dataset.aspectRatio; delete el.dataset.aspectLock; delete el.dataset.toolType;
@@ -1835,25 +1906,24 @@ ${generatedBodyHtml}
                     const img = el.querySelector('img.element-image'); if (img) { delete img.dataset.naturalWidth; delete img.dataset.naturalHeight; }
                 });
                 previewCanvas.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
-                previewCanvas.querySelectorAll('button.element-button[data-href]').forEach(btn => { /* ... (unchanged button -> link conversion) ... */
+                // Convert standard buttons to links
+                previewCanvas.querySelectorAll('button.element-button[data-href]').forEach(btn => {
                     const link = btn.getAttribute('data-href'); const target = btn.getAttribute('data-target') || '_self';
                     if (link && link !== '#') { const anchor = document.createElement('a'); anchor.href = link; anchor.target = target; anchor.textContent = btn.textContent; anchor.className = Array.from(btn.classList).filter(cls => cls.startsWith('element-')).join(' '); anchor.classList.add('preview-button-link'); const stylesToCopy = ['color', 'background-color', 'font-family', 'font-size', 'font-weight', 'text-align', 'padding', 'border-radius', 'margin', 'display', 'width', 'height']; stylesToCopy.forEach(styleProp => { if (btn.style[styleProp]) anchor.style[styleProp] = btn.style[styleProp]; }); btn.parentNode.replaceChild(anchor, btn); }
                     else { btn.removeAttribute('data-href'); btn.removeAttribute('data-target'); }
                 });
-                // Keep crypto buttons as buttons but remove onclick
+                // Keep crypto buttons as buttons, remove onclick, reset state
                  previewCanvas.querySelectorAll('button.element-wallet-button').forEach(btn => {
-                    // ** MODIFICATION: No need to remove onclick here either **
-                    // btn.removeAttribute('onclick');
-                    // Reset text for preview
-                    btn.textContent = 'Connect Wallet';
-                    btn.classList.remove('connected');
+                    btn.onclick = null; // Remove any inline onclick
+                    btn.textContent = 'Connect Wallet'; // Reset text
+                    btn.classList.remove('connected'); // Ensure not connected state
                  });
                 previewCanvas.querySelectorAll('.element-columns > div').forEach(col => { col.style.border = ''; });
                 previewCanvas.querySelectorAll('.element-spacer').forEach(sp => { sp.style.background = ''; sp.style.opacity = ''; });
 
                 let previewBodyHtml = formatHtml(previewCanvas.innerHTML);
                 const canvasHeight = canvas.style.height || '800px';
-                // Construct the full HTML
+                // Construct the full HTML including the preview script
                 const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1871,9 +1941,7 @@ ${generatedBodyHtml}
             border: 1px solid #eee; overflow: hidden;
         }
         ${defaultElementStyles}
-        /* --- ADDED: Wallet Button Script Placeholder --- */
-        /* Include basic styles for wallet button in preview */
-        .element-wallet-button { /* ... (styles from defaultElementStyles) ... */ }
+        /* Add styles for connected state in preview */
         .element-wallet-button.connected { background-color: #28a745; }
         .element-wallet-button:disabled { background-color: #adb5bd; cursor: not-allowed; opacity: 0.7; }
     </style>
@@ -1884,30 +1952,49 @@ ${previewBodyHtml}
     </div>
 
     <script>
-        // Basic wallet connection simulation for preview purposes
-        // ** MODIFICATION: Using addEventListener for preview as well **
-        document.querySelectorAll('.element-wallet-button').forEach(button => {
-            // Define the handler
-            const previewWalletClickHandler = () => {
-                const isConnected = button.classList.contains('connected');
-                if (isConnected) {
-                    // Simulate disconnect
+        document.addEventListener('DOMContentLoaded', () => {
+            const walletButtons = document.querySelectorAll('.element-wallet-button');
+            let previewConnectedAccount = null; // Simple state for preview
+
+            function updatePreviewButton(button, account) {
+                if (account) {
+                    button.textContent = \`Connected: \${account.substring(0, 6)}...\${account.substring(account.length - 4)}\`;
+                    button.classList.add('connected');
+                } else {
                     button.textContent = 'Connect Wallet';
                     button.classList.remove('connected');
-                    console.log('Wallet disconnected (Preview)');
-                } else {
-                    // Simulate connect
-                    const walletType = button.id.includes('metamask') ? 'MetaMask' : 'Phantom'; // Simple check
-                    const dummyAccount = '0x123...abc'; // Placeholder account
-                    button.textContent = \`Connected: \${dummyAccount.substring(0, 6)}...\${dummyAccount.substring(dummyAccount.length - 4)}\`;
-                    button.classList.add('connected');
-                    console.log(\`\${walletType} connected (Preview): \${dummyAccount}\`);
                 }
-            };
-            // Remove potential old listener before adding
-            button.removeEventListener('click', previewWalletClickHandler);
-            // Add the listener
-            button.addEventListener('click', previewWalletClickHandler);
+            }
+
+            walletButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    if (button.classList.contains('connected')) {
+                        // Simulate disconnect
+                        previewConnectedAccount = null;
+                        updatePreviewButton(button, null);
+                        console.log('Wallet disconnected (Preview)');
+                    } else {
+                        // Simulate connecting with MetaMask
+                        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+                            try {
+                                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                                if (accounts.length > 0) {
+                                    previewConnectedAccount = accounts[0];
+                                    updatePreviewButton(button, previewConnectedAccount);
+                                    console.log('MetaMask connected (Preview):', previewConnectedAccount);
+                                } else {
+                                     alert('Preview: No accounts found.');
+                                }
+                            } catch (error) {
+                                console.error('Preview connection error:', error);
+                                alert('Preview: Wallet connection failed or rejected.');
+                            }
+                        } else {
+                            alert('Preview: MetaMask not detected. Install it to test connection.');
+                        }
+                    }
+                });
+            });
         });
     <\/script>
 </body>
@@ -2139,7 +2226,7 @@ ${previewBodyHtml}
                 if (!walletModal || !connectMetaMaskBtn || !connectPhantomBtn) return;
                 currentWalletButton = triggerButton; // Store the button that opened the modal
 
-                // --- MODIFICATION START: Check wallet availability and update buttons ---
+                // --- Check wallet availability and update buttons ---
                 const isMetaMaskAvailable = typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
                 const isPhantomAvailable = typeof window.phantom?.solana?.isPhantom !== 'undefined' && window.phantom.solana.isPhantom;
 
@@ -2156,16 +2243,15 @@ ${previewBodyHtml}
                 // Update MetaMask button if not available
                 if (!isMetaMaskAvailable) {
                     connectMetaMaskBtn.disabled = true;
-                    if (metaMaskSpan) metaMaskSpan.textContent = 'MetaMask not detected or try different browser';
+                    if (metaMaskSpan) metaMaskSpan.textContent = 'MetaMask not detected';
                 }
 
                 // Update Phantom button if not available
                 if (!isPhantomAvailable) {
                     connectPhantomBtn.disabled = true;
-                    if (phantomSpan) phantomSpan.textContent = 'Phantom not detected or try different browser';
+                    if (phantomSpan) phantomSpan.textContent = 'Phantom not detected';
                 }
-                // --- MODIFICATION END ---
-
+                // --- End wallet availability check ---
 
                 walletModal.classList.remove('hidden');
                 // Use setTimeout to allow the 'hidden' class removal to register before starting transition
@@ -2217,17 +2303,24 @@ ${previewBodyHtml}
                 if (connectMetaMaskBtn) {
                     connectMetaMaskBtn.addEventListener('click', async () => {
                         if (connectMetaMaskBtn.disabled) return; // Do nothing if disabled
-                        // --- MODIFICATION: Removed call to connectWallet ---
-                        console.log("MetaMask button clicked - Add your custom code here.");
-                        // await connectWallet('metamask'); // Original call removed
-                        // --- END MODIFICATION ---
+                        // *** Call connectWallet for MetaMask ***
+                        await connectWallet('metamask');
                     });
                 }
                 if (connectPhantomBtn) {
                     connectPhantomBtn.addEventListener('click', async () => {
                         if (connectPhantomBtn.disabled) return; // Do nothing if disabled
-                        await connectWallet('phantom'); // Keep Phantom functionality for now
+                        // *** Call connectWallet for Phantom ***
+                        await connectWallet('phantom');
                     });
+                }
+                 // Make sure the modal itself can be closed by clicking the overlay or close button
+                if (walletModal) {
+                    walletModal.addEventListener('click', hideWalletModalIfOverlay);
+                    const closeButton = walletModal.querySelector('button[aria-label="Close wallet modal"]');
+                    if (closeButton) {
+                         closeButton.addEventListener('click', hideWalletModal);
+                    }
                 }
             }
 
@@ -2238,29 +2331,35 @@ ${previewBodyHtml}
                 let provider;
                 let accounts = [];
                 let errorMsg = null;
+                let providerName = ''; // To store the identified provider name
 
                 try {
-                    // --- MODIFICATION: Removed MetaMask connection logic ---
                     if (walletType === 'metamask') {
-                        // This block is now effectively skipped for MetaMask
-                        // because the call in addWalletModalListeners was removed.
-                        // If you were to call connectWallet('metamask') directly,
-                        // it would still check availability but wouldn't request accounts.
-                        console.log("connectWallet called for MetaMask, but logic is removed from listener.");
-                        errorMsg = "MetaMask connection logic removed as requested."; // Indicate the change
-                    } else if (walletType === 'phantom' && typeof window.phantom?.solana?.isPhantom !== 'undefined') {
-                        provider = window.phantom.solana;
-                        const resp = await provider.connect();
-                        accounts = [resp.publicKey.toString()]; // Phantom returns public key object
-                    } else if (walletType === 'phantom') { // Check specifically for Phantom unavailability
-                         errorMsg = `Phantom is not available. Please install it or try a different browser.`;
+                         // *** Correctly implement MetaMask connection ***
+                        if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+                            provider = window.ethereum;
+                            providerName = 'MetaMask';
+                            // Request accounts
+                            accounts = await provider.request({ method: 'eth_requestAccounts' });
+                        } else {
+                             errorMsg = `MetaMask is not available. Please install it or try a different browser.`;
+                        }
+                    } else if (walletType === 'phantom') {
+                        // *** Correctly implement Phantom connection ***
+                        if (typeof window.phantom?.solana?.isPhantom !== 'undefined') {
+                            provider = window.phantom.solana;
+                            providerName = 'Phantom';
+                            // Request connection (prompts user if not already connected)
+                            const resp = await provider.connect({ onlyIfTrusted: false });
+                            accounts = [resp.publicKey.toString()]; // Phantom returns public key object
+                         } else {
+                             errorMsg = `Phantom is not available. Please install it or try a different browser.`;
+                         }
                     } else {
-                        // Generic message if somehow called with an unknown type
                         errorMsg = `Wallet type "${walletType}" is not supported or available.`;
                     }
-                    // --- END MODIFICATION ---
 
-                    // The rest of the logic only runs if accounts were successfully retrieved (i.e., for Phantom)
+                    // Check if connection was successful and accounts were received
                     if (accounts && accounts.length > 0) {
                         connectedWalletType = walletType;
                         connectedAccount = accounts[0];
@@ -2271,19 +2370,25 @@ ${previewBodyHtml}
                         currentWalletButton.dataset.connectedWallet = walletType; // Store connection info
                         currentWalletButton.dataset.connectedAccount = connectedAccount;
 
-                        showStatusMessage(`${walletType === 'metamask' ? 'MetaMask' : 'Phantom'} connected: ${connectedAccount.substring(0, 6)}...`, 'success');
+                        showStatusMessage(`${providerName} connected: ${connectedAccount.substring(0, 6)}...`, 'success');
                         hideWalletModal();
                         saveToHistory(); // Save state after connection
                     } else if (!errorMsg) {
-                        // This case should now only be reachable for Phantom if connection fails/is refused
-                        errorMsg = `Connection refused or no accounts found for ${walletType === 'metamask' ? 'MetaMask' : 'Phantom'}.`;
+                        // Handle case where connection was refused or failed without throwing an error
+                        errorMsg = `Connection refused or no accounts found for ${providerName || walletType}.`;
                     }
 
                 } catch (err) {
-                    console.error(`Error connecting to ${walletType}:`, err);
-                    errorMsg = `Error connecting to ${walletType}: ${err.message || 'Connection failed.'}`;
+                    console.error(`Error connecting to ${providerName || walletType}:`, err);
+                    // Provide more specific error messages if available
+                    if (err.code === 4001) { // EIP-1193 user rejected request error
+                         errorMsg = 'Wallet connection request rejected by user.';
+                    } else {
+                         errorMsg = `Error connecting to ${providerName || walletType}: ${err.message || 'Connection failed.'}`;
+                    }
                 }
 
+                // Show error message if connection failed at any point
                 if (errorMsg) {
                     showStatusMessage(errorMsg, 'error');
                     // Optionally hide modal on error, or keep it open
@@ -2295,8 +2400,10 @@ ${previewBodyHtml}
             function disconnectWallet(buttonElement) {
                  if (!buttonElement) return;
 
-                 const walletType = buttonElement.dataset.connectedWallet;
-                 showStatusMessage(`${walletType === 'metamask' ? 'MetaMask' : 'Phantom'} disconnected.`, 'info');
+                 const walletType = buttonElement.dataset.connectedWallet || 'Wallet'; // Get type from button data
+                 const providerName = walletType === 'metamask' ? 'MetaMask' : (walletType === 'phantom' ? 'Phantom' : 'Wallet');
+
+                 showStatusMessage(`${providerName} disconnected.`, 'info');
 
                  // Reset button state
                  buttonElement.textContent = 'Connect Wallet';
@@ -2308,6 +2415,15 @@ ${previewBodyHtml}
                  connectedWalletType = null;
                  connectedAccount = null;
                  saveToHistory(); // Save state after disconnection
+
+                 // Note: Actual disconnection from the wallet provider (e.g., making it forget the site)
+                 // usually isn't handled directly by the dApp script for providers like MetaMask.
+                 // The user typically manages connections from the wallet extension itself.
+                 // For Phantom, you could potentially call `provider.disconnect()` if needed,
+                 // but simply clearing the state locally is often sufficient.
+                 // if (walletType === 'phantom' && typeof window.phantom?.solana?.disconnect === 'function') {
+                 //     window.phantom.solana.disconnect().catch(console.error);
+                 // }
             }
 
 
@@ -2332,5 +2448,6 @@ ${previewBodyHtml}
             initBuilder(); // Start the application
         });
     </script>
-</body>
+
+    </body>
 </html>
